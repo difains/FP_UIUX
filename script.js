@@ -917,6 +917,68 @@ document.addEventListener('DOMContentLoaded', function() {
     fpCalculator.init();
     console.log('FP Calculator 초기화 완료');
     
+    // Footer 모달 기능
+    const modals = {
+        methodology: document.getElementById('methodologyModal')
+    };
+    
+    const modalTriggers = {
+        methodology: document.getElementById('showMethodology'),
+        references: document.getElementById('showReferences'),
+        disclaimer: document.getElementById('showDisclaimer')
+    };
+    
+    // 방법론 모달
+    if (modalTriggers.methodology) {
+        modalTriggers.methodology.addEventListener('click', () => {
+            modals.methodology.style.display = 'block';
+        });
+    }
+    
+    // 상세 근거 버튼
+    if (modalTriggers.references) {
+        modalTriggers.references.addEventListener('click', () => {
+            alert(`상세 근거 자료:
+            
+1. IFPUG CPM 4.3.1 - 국제 표준 FP 측정법
+2. ISO/IEC 20926:2009 - 소프트웨어 측정 국제 표준
+3. KOSA SW사업 대가산정 가이드 (2024년판)
+4. NIPA SW개발비 산정 가이드라인
+5. 국내 SI 업체 평균 투입 공수 분석 데이터
+
+※ 모든 계산식은 공인된 표준과 실무 데이터를 기반으로 합니다.`);
+        });
+    }
+    
+    // 면책 사항 버튼
+    if (modalTriggers.disclaimer) {
+        modalTriggers.disclaimer.addEventListener('click', () => {
+            alert(`면책 사항:
+
+본 도구는 내부용 간이 산정 목적으로 제작되었습니다.
+- 정확한 산정을 위해서는 전문가 검토가 필요합니다.
+- 프로젝트 특성에 따라 결과가 달라질 수 있습니다.
+- 최종 의사결정 시 추가 검증을 권장합니다.`);
+        });
+    }
+    
+    // 모달 닫기 기능
+    document.querySelectorAll('.close').forEach(closeBtn => {
+        closeBtn.addEventListener('click', (e) => {
+            e.target.closest('.modal').style.display = 'none';
+        });
+    });
+    
+    // 모달 외부 클릭 시 닫기
+    window.addEventListener('click', (e) => {
+        Object.values(modals).forEach(modal => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    });
+});
+    
     // 키보드 단축키
     document.addEventListener('keydown', function(e) {
         if (e.ctrlKey || e.metaKey) {
@@ -932,4 +994,4 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
-});
+
