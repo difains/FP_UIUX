@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI/UX FP 간이 산정 도구</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <h1>UI/UX 기능점수 간이 산정 도구</h1>
+                <p class="subtitle">내부용 FP 산정 및 UI/UX 인력 산정 시스템</p>
+                <div class="header-actions">
+                    <input type="file" id="excelUpload" accept=".xlsx,.xls" style="display: none;">
+                    <button id="uploadBtn" class="btn-header">Excel 업로드</button>
+                    <button id="downloadBtn" class="btn-header">Excel 다운로드</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="sidebar">
+                <div class="project-selector">
+                    <h3>프로젝트 관리</h3>
+                    <select id="projectList">
+                        <option value="">새 프로젝트</option>
+                    </select>
+                    <div class="project-actions">
+                        <button id="newProject" class="btn-small">새로 만들기</button>
+                        <button id="deleteProject" class="btn-small btn-danger">삭제</button>
+                    </div>
+                </div>
+
+                <div class="quick-templates">
+                    <h3>빠른 템플릿</h3>
+                    <div class="template-grid">
+                        <button class="template-card" data-template="basic">
+                            <span class="template-icon">🌐</span>
+                            <span>기본 웹사이트</span>
+                        </button>
+                        <button class="template-card" data-template="ecommerce">
+                            <span class="template-icon">🛒</span>
+                            <span>쇼핑몰</span>
+                        </button>
+                        <button class="template-card" data-template="cms">
+                            <span class="template-icon">📝</span>
+                            <span>CMS/게시판</span>
+                        </button>
+                        <button class="template-card" data-template="mobile">
+                            <span class="template-icon">📱</span>
+                            <span>모바일 앱</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="main-panel">
+                <div class="project-info-card">
+                    <h2>프로젝트 정보</h2>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label for="projectName">프로젝트명</label>
+                            <input type="text" id="projectName" placeholder="프로젝트명을 입력하세요">
+                        </div>
+                        <div class="info-item">
+                            <label for="projectType">프로젝트 유형</label>
+                            <select id="projectType">
+                                <option value="web">웹 애플리케이션</option>
+                                <option value="mobile">모바일 앱</option>
+                                <option value="hybrid">하이브리드</option>
+                                <option value="responsive">반응형 웹</option>
+                            </select>
+                        </div>
+                        <div class="info-item">
+                            <label for="estimationMethod">산정 방식</label>
+                            <select id="estimationMethod">
+                                <option value="simple">간편 추정법 (기능수 × 4.7)</option>
+                                <option value="detailed">상세 산정법 (FP 유형별)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="function-input-card">
+                    <h2>기능 입력</h2>
+                    <div class="input-methods">
+                        <div class="method-tabs">
+                            <button class="tab-btn active" data-tab="manual">수동 입력</button>
+                            <button class="tab-btn" data-tab="bulk">일괄 입력</button>
+                        </div>
+                        
+                        <div id="manual-input" class="input-method active">
+                            <div class="input-row">
+                                <input type="text" id="functionName" placeholder="기능명 (예: 회원 로그인)">
+                                <select id="fpType">
+                                    <option value="EI">외부입력 (EI) - 4.0</option>
+                                    <option value="EO">외부출력 (EO) - 5.2</option>
+                                    <option value="EQ">외부조회 (EQ) - 3.9</option>
+                                    <option value="ILF">내부논리파일 (ILF) - 7.5</option>
+                                    <option value="EIF">외부연계파일 (EIF) - 5.4</option>
+                                </select>
+                                <input type="number" id="screenCount" placeholder="화면 수" min="1" value="1">
+                                <select id="complexity">
+                                    <option value="simple">단순</option>
+                                    <option value="average" selected>보통</option>
+                                    <option value="complex">복잡</option>
+                                </select>
+                                <button id="addFunction" class="btn-primary">추가</button>
+                            </div>
+                        </div>
+
+                        <div id="bulk-input" class="input-method">
+                            <textarea id="bulkFunctions" placeholder="기능명1, EI, 1, average&#10;기능명2, EO, 2, simple&#10;..."></textarea>
+                            <button id="bulkAdd" class="btn-primary">일괄 추가</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="function-list-card">
+                    <div class="card-header">
+                        <h2>기능 목록</h2>
+                        <div class="list-actions">
+                            <button id="clearAll" class="btn-small btn-danger">전체 삭제</button>
+                            <button id="validateFunctions" class="btn-small">검증</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table id="functionTable">
+                            <thead>
+                                <tr>
+                                    <th>기능명</th>
+                                    <th>FP 유형</th>
+                                    <th>복잡도</th>
+                                    <th>가중치</th>
+                                    <th>화면 수</th>
+                                    <th>FP</th>
+                                    <th>액션</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="results-panel">
+                <div class="fp-summary-card">
+                    <h2>FP 산정 결과</h2>
+                    <div class="summary-grid">
+                        <div class="summary-item primary">
+                            <span class="label">총 기능점수</span>
+                            <span id="totalFP" class="value">0</span>
+                            <span class="unit">FP</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="label">개발비용</span>
+                            <span id="totalCost" class="value">0</span>
+                            <span class="unit">만원</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="label">총 화면 수</span>
+                            <span id="totalScreens" class="value">0</span>
+                            <span class="unit">개</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="label">예상 기간</span>
+                            <span id="estimatedDuration" class="value">0</span>
+                            <span class="unit">개월</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="uiux-estimation-card">
+                    <h2>UI/UX 인력 산정</h2>
+                    <div class="roles-grid">
+                        <div class="role-item">
+                            <div class="role-header">
+                                <span class="role-icon">🎯</span>
+                                <div class="role-info">
+                                    <h3>UI/UX 기획자</h3>
+                                    <p>사용자 경험 분석 및 기획</p>
+                                </div>
+                            </div>
+                            <div class="role-calculation">
+                                <span class="calculation-detail">화면 수 × 0.15</span>
+                                <div class="role-result">
+                                    <span id="uxPlanner" class="value">0</span>
+                                    <span class="unit">MM</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="role-item">
+                            <div class="role-header">
+                                <span class="role-icon">🎨</span>
+                                <div class="role-info">
+                                    <h3>UI/UX 디자이너</h3>
+                                    <p>화면 디자인 및 프로토타입</p>
+                                </div>
+                            </div>
+                            <div class="role-calculation">
+                                <span class="calculation-detail">화면 수 × 0.25</span>
+                                <div class="role-result">
+                                    <span id="uiDesigner" class="value">0</span>
+                                    <span class="unit">MM</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="role-item">
+                            <div class="role-header">
+                                <span class="role-icon">💻</span>
+                                <div class="role-info">
+                                    <h3>웹 퍼블리셔</h3>
+                                    <p>HTML/CSS 구현</p>
+                                </div>
+                            </div>
+                            <div class="role-calculation">
+                                <span class="calculation-detail">화면 수 × 0.20</span>
+                                <div class="role-result">
+                                    <span id="publisher" class="value">0</span>
+                                    <span class="unit">MM</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="validation-card">
+                    <h2>검증 결과</h2>
+                    <div id="validationResults" class="validation-content">
+                        <p class="no-issues">검증을 실행하세요.</p>
+                    </div>
+                </div>
+
+                <div class="export-card">
+                    <h2>결과 내보내기</h2>
+                    <div class="export-actions">
+                        <button id="exportPDF" class="btn-secondary">📄 PDF 다운로드</button>
+                        <button id="exportExcel" class="btn-secondary">📊 Excel 다운로드</button>
+                        <button id="shareProject" class="btn-secondary">🔗 공유 링크</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p>처리 중...</p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
