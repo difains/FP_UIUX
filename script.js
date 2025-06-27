@@ -33,23 +33,56 @@ class FPCalculator {
     }
 
     initializeEventListeners() {
+        console.log('이벤트 리스너 초기화 시작');
+        
         // 프로젝트 관리
         document.getElementById('newProject').addEventListener('click', () => this.createNewProject());
         document.getElementById('deleteProject').addEventListener('click', () => this.deleteProject());
         document.getElementById('projectList').addEventListener('change', (e) => this.loadProject(e.target.value));
         
-        // 기능 입력
-        document.getElementById('addFunction').addEventListener('click', () => this.addFunction());
-        document.getElementById('bulkAdd').addEventListener('click', () => this.bulkAddFunctions());
-        document.getElementById('functionName').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.addFunction();
-        });
+        // 기능 입력 - 수정된 부분
+        const addBtn = document.getElementById('addFunction');
+        if (addBtn) {
+            addBtn.addEventListener('click', () => {
+                console.log('추가 버튼 클릭됨');
+                this.addFunction();
+            });
+        }
         
-        // 탭 전환
+        const bulkAddBtn = document.getElementById('bulkAdd');
+        if (bulkAddBtn) {
+            bulkAddBtn.addEventListener('click', () => {
+                console.log('일괄 추가 버튼 클릭됨');
+                this.bulkAddFunctions();
+            });
+        }
+        
+        // 엔터키 이벤트
+        const functionNameInput = document.getElementById('functionName');
+        if (functionNameInput) {
+            functionNameInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    console.log('엔터키 입력됨');
+                    this.addFunction();
+                }
+            });
+        }
+        
+        // 탭 전환 - 수정된 부분
         document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
+            btn.addEventListener('click', (e) => {
+                console.log('탭 클릭됨:', e.target.dataset.tab);
+                this.switchTab(e.target.dataset.tab);
+            });
         });
         
+        // 나머지 이벤트 리스너들...
+        this.initializeOtherEventListeners();
+        
+        console.log('이벤트 리스너 초기화 완료');
+    }
+
+    initializeOtherEventListeners() {
         // 템플릿 로드
         document.querySelectorAll('.template-card').forEach(card => {
             card.addEventListener('click', (e) => {
@@ -70,10 +103,14 @@ class FPCalculator {
         document.getElementById('clearAll').addEventListener('click', () => this.clearAllFunctions());
         document.getElementById('exportPDF').addEventListener('click', () => this.exportToPDF());
         document.getElementById('exportExcel').addEventListener('click', () => this.exportToExcel());
+        document.getElementById('shareProject').addEventListener('click', () => this.shareProject());
         
         // 프로젝트 정보 변경 감지
         ['projectName', 'projectType', 'estimationMethod'].forEach(id => {
-            document.getElementById(id).addEventListener('change', () => this.saveCurrentProject());
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener('change', () => this.saveCurrentProject());
+            }
         });
         
         // 자동 저장
@@ -235,24 +272,60 @@ class FPCalculator {
         localStorage.setItem('fpProjects', JSON.stringify(this.projects));
     }
 
-    // 탭 전환
+    // 탭 전환 - 수정된 함수
     switchTab(tabName) {
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.input-method').forEach(method => method.classList.remove('active'));
+        console.log('탭 전환:', tabName);
         
-        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-        document.getElementById(`${tabName}-input`).classList.add('active');
+        // 모든 탭 버튼에서 active 클래스 제거
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        // 모든 입력 방법에서 active 클래스 제거
+        document.querySelectorAll('.input-method').forEach(method => {
+            method.classList.remove('active');
+        });
+        
+        // 클릭된 탭 버튼에 active 클래스 추가
+        const activeTabBtn = document.querySelector(`[data-tab="${tabName}"]`);
+        if (activeTabBtn) {
+            activeTabBtn.classList.add('active');
+        }
+        
+        // 해당 입력 방법에 active 클래스 추가
+        const activeMethod = document.getElementById(`${tabName}-input`);
+        if (activeMethod) {
+            activeMethod.classList.add('active');
+        }
+        
+        console.log('탭 전환 완료:', tabName);
     }
 
-    // 기능 추가
+    // 기능 추가 - 수정된 함수
     addFunction() {
-        const name = document.getElementById('functionName').value.trim();
-        const type = document.getElementById('fpType').value;
-        const screenCount = parseInt(document.getElementById('screenCount').value) || 1;
-        const complexity = document.getElementById('complexity').value;
+        console.log('addFunction 호출됨');
+        
+        const nameInput = document.getElementById('functionName');
+        const typeSelect = document.getElementById('fpType');
+        const screenInput = document.getElementById('screenCount');
+        const complexitySelect = document.getElementById('complexity');
+        
+        if (!nameInput || !typeSelect || !screenInput || !complexitySelect) {
+            console.error('필수 입력 요소를 찾을 수 없습니다');
+            alert('입력 요소를 찾을 수 없습니다. 페이지를 새로고침해주세요.');
+            return;
+        }
+        
+        const name = nameInput.value.trim();
+        const type = typeSelect.value;
+        const screenCount = parseInt(screenInput.value) || 1;
+        const complexity = complexitySelect.value;
+        
+        console.log('입력값:', { name, type, screenCount, complexity });
         
         if (!name) {
             alert('기능명을 입력해주세요.');
+            nameInput.focus();
             return;
         }
         
@@ -271,49 +344,77 @@ class FPCalculator {
             fp: weight * (type.includes('LF') ? 1 : screenCount)
         };
         
+        console.log('생성된 기능 객체:', functionObj);
+        
         this.functions.push(functionObj);
         this.updateFunctionTable();
         this.calculateResults();
         this.clearInputs();
         this.saveCurrentProject();
+        
+        console.log('기능 추가 완료. 총 기능 수:', this.functions.length);
     }
 
-    // 일괄 추가
+    // 일괄 추가 - 수정된 함수
     bulkAddFunctions() {
-        const bulkText = document.getElementById('bulkFunctions').value.trim();
-        if (!bulkText) return;
+        console.log('bulkAddFunctions 호출됨');
+        
+        const bulkTextarea = document.getElementById('bulkFunctions');
+        if (!bulkTextarea) {
+            console.error('일괄 입력 텍스트 영역을 찾을 수 없습니다');
+            return;
+        }
+        
+        const bulkText = bulkTextarea.value.trim();
+        if (!bulkText) {
+            alert('일괄 입력할 데이터를 입력해주세요.');
+            return;
+        }
         
         const lines = bulkText.split('\n');
         const estimationMethod = document.getElementById('estimationMethod').value;
+        let addedCount = 0;
         
-        lines.forEach(line => {
+        console.log('처리할 라인 수:', lines.length);
+        
+        lines.forEach((line, index) => {
             const parts = line.split(',').map(part => part.trim());
             if (parts.length >= 4) {
                 const [name, type, screenCount, complexity] = parts;
-                const weight = estimationMethod === 'simple' 
-                    ? this.simpleWeights[type] 
-                    : this.fpWeights[type][complexity];
                 
-                if (weight) {
+                if (this.fpWeights[type]) {
+                    const weight = estimationMethod === 'simple' 
+                        ? this.simpleWeights[type] 
+                        : this.fpWeights[type][complexity] || this.fpWeights[type]['average'];
+                    
                     const functionObj = {
                         id: Date.now() + Math.random(),
                         name: name,
                         type: type,
-                        complexity: complexity,
+                        complexity: complexity || 'average',
                         weight: weight,
                         screenCount: parseInt(screenCount) || 1,
                         fp: weight * (type.includes('LF') ? 1 : parseInt(screenCount) || 1)
                     };
                     
                     this.functions.push(functionObj);
+                    addedCount++;
+                    console.log(`라인 ${index + 1} 처리 완료:`, functionObj.name);
+                } else {
+                    console.warn(`라인 ${index + 1}: 잘못된 FP 유형 - ${type}`);
                 }
+            } else {
+                console.warn(`라인 ${index + 1}: 형식이 올바르지 않음 - ${line}`);
             }
         });
         
-        document.getElementById('bulkFunctions').value = '';
+        bulkTextarea.value = '';
         this.updateFunctionTable();
         this.calculateResults();
         this.saveCurrentProject();
+        
+        alert(`${addedCount}개의 기능이 추가되었습니다.`);
+        console.log('일괄 추가 완료. 추가된 기능 수:', addedCount);
     }
 
     // 템플릿 로드
@@ -352,7 +453,7 @@ class FPCalculator {
         this.saveCurrentProject();
     }
 
-    // Excel 업로드 처리[12]
+    // Excel 업로드 처리
     handleExcelUpload(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -437,7 +538,7 @@ class FPCalculator {
         alert(`${this.functions.length}개의 기능이 업로드되었습니다.`);
     }
 
-    // Excel 다운로드[9]
+    // Excel 다운로드
     downloadExcel() {
         if (this.functions.length === 0) {
             alert('다운로드할 기능이 없습니다.');
@@ -571,7 +672,7 @@ class FPCalculator {
         document.getElementById('publisher').textContent = publisherMM.toFixed(2);
     }
 
-    // 검증 기능[10]
+    // 검증 기능
     validateFunctions() {
         const issues = [];
         const results = document.getElementById('validationResults');
@@ -609,10 +710,6 @@ class FPCalculator {
             issues.push(`화면 수가 0인 트랜잭션 기능이 있습니다: ${zeroScreenFunctions.map(f => f.name).join(', ')}`);
         }
         
-        // 결과 표시
-        results.innerHTML = '';
-        if (issues.length === 0) {
-            results.innerHTML = '<div class="validation-success">✅ 검증 완료: 문제가 발견되지 않았습니다.</div>';
         // 결과 표시
         results.innerHTML = '';
         if (issues.length === 0) {
@@ -815,11 +912,10 @@ let fpCalculator;
 
 // DOM 로드 완료 후 초기화
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM 로드 완료');
     fpCalculator = new FPCalculator();
     fpCalculator.init();
-    
-    // 추가 이벤트 리스너
-    document.getElementById('shareProject').addEventListener('click', () => fpCalculator.shareProject());
+    console.log('FP Calculator 초기화 완료');
     
     // 키보드 단축키
     document.addEventListener('keydown', function(e) {
@@ -837,49 +933,3 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
-
-// CSS 추가 스타일 (FP 유형 배지)
-const additionalCSS = `
-.fp-type-badge {
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 600;
-    color: white;
-}
-
-.fp-ei { background-color: #007bff; }
-.fp-eo { background-color: #28a745; }
-.fp-eq { background-color: #17a2b8; }
-.fp-ilf { background-color: #ffc107; color: #333; }
-.fp-eif { background-color: #6f42c1; }
-
-.btn-remove {
-    background: #dc3545;
-    color: white;
-    border: none;
-    padding: 4px 8px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 11px;
-}
-
-.btn-remove:hover {
-    background: #c82333;
-}
-
-@media print {
-    .sidebar, .export-card {
-        display: none;
-    }
-    
-    .main-content {
-        grid-template-columns: 1fr;
-    }
-}
-`;
-
-// 동적으로 CSS 추가
-const style = document.createElement('style');
-style.textContent = additionalCSS;
-document.head.appendChild(style);

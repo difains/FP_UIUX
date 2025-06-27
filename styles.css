@@ -220,6 +220,53 @@ body {
     font-size: 13px;
 }
 
+/* 입력 그리드 레이아웃 */
+.input-grid {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 100px 120px 120px;
+    gap: 15px;
+    align-items: end;
+}
+
+.input-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.input-item label {
+    font-weight: 500;
+    margin-bottom: 5px;
+    color: var(--gray-700);
+    font-size: 13px;
+}
+
+/* 일괄 입력 컨테이너 */
+.bulk-input-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.bulk-input-container label {
+    font-weight: 600;
+    color: var(--gray-800);
+    font-size: 14px;
+}
+
+.input-help {
+    font-size: 12px;
+    color: var(--gray-500);
+    margin: 0;
+    font-style: italic;
+}
+
+#bulkFunctions {
+    min-height: 120px;
+    resize: vertical;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+}
+
 input, select, textarea {
     padding: 12px;
     border: 2px solid var(--gray-200);
@@ -272,6 +319,15 @@ input:focus, select:focus, textarea:focus {
     padding: 6px 12px;
     font-size: 12px;
     border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    border: 1px solid var(--gray-300);
+    color: var(--gray-700);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-small:hover {
+    background: var(--gray-100);
 }
 
 .btn-danger {
@@ -313,13 +369,6 @@ input:focus, select:focus, textarea:focus {
 
 .input-method.active {
     display: block;
-}
-
-.input-row {
-    display: grid;
-    grid-template-columns: 2fr 1.5fr 80px 100px 100px;
-    gap: 12px;
-    align-items: end;
 }
 
 /* 테이블 스타일 */
@@ -528,6 +577,35 @@ tr:hover {
     100% { transform: rotate(360deg); }
 }
 
+/* FP 유형 배지 */
+.fp-type-badge {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: white;
+}
+
+.fp-ei { background-color: #007bff; }
+.fp-eo { background-color: #28a745; }
+.fp-eq { background-color: #17a2b8; }
+.fp-ilf { background-color: #ffc107; color: #333; }
+.fp-eif { background-color: #6f42c1; }
+
+.btn-remove {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+}
+
+.btn-remove:hover {
+    background: #c82333;
+}
+
 /* 반응형 디자인 */
 @media (max-width: 1200px) {
     .main-content {
@@ -562,9 +640,13 @@ tr:hover {
         grid-template-columns: 1fr;
     }
     
-    .input-row {
+    .input-grid {
         grid-template-columns: 1fr;
         gap: 10px;
+    }
+    
+    .input-item {
+        margin-bottom: 10px;
     }
     
     .summary-grid {
@@ -596,5 +678,15 @@ tr:hover {
     
     th, td {
         padding: 8px 4px;
+    }
+}
+
+@media print {
+    .sidebar, .export-card {
+        display: none;
+    }
+    
+    .main-content {
+        grid-template-columns: 1fr;
     }
 }
