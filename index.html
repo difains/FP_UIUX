@@ -16,7 +16,6 @@
     <!-- 접근성: 스킵 네비게이션 -->
     <div class="skip-navigation">
         <a href="#main-content">본문 바로가기</a>
-        <a href="#sidebar-menu">메뉴 바로가기</a>
     </div>
 
     <div class="container">
@@ -36,40 +35,30 @@
             </div>
         </header>
 
+        <!-- 표준 샘플 영역 (헤더 다음으로 이동) -->
+        <section class="samples-section">
+            <h2>표준 샘플</h2>
+            <div class="template-grid" role="group" aria-label="프로젝트 샘플">
+                <button class="template-card" data-template="government">
+                    <span class="template-icon" aria-hidden="true">🏛️</span>
+                    <span>전자정부</span>
+                </button>
+                <button class="template-card" data-template="basic">
+                    <span class="template-icon" aria-hidden="true">🌐</span>
+                    <span>기본 웹사이트</span>
+                </button>
+                <button class="template-card" data-template="ecommerce">
+                    <span class="template-icon" aria-hidden="true">🛒</span>
+                    <span>전자상거래</span>
+                </button>
+                <button class="template-card" data-template="mobile">
+                    <span class="template-icon" aria-hidden="true">📱</span>
+                    <span>모바일 앱</span>
+                </button>
+            </div>
+        </section>
+
         <main class="main-content" id="main-content" role="main">
-            <nav class="sidebar" id="sidebar-menu" role="navigation" aria-label="프로젝트 관리 메뉴">
-                <div class="project-selector">
-                    <h3>프로젝트 관리</h3>
-                    <label for="projectList" class="sr-only">프로젝트 선택</label>
-                    <select id="projectList" aria-describedby="project-list-help">
-                        <option value="">새 프로젝트</option>
-                    </select>
-                    <div id="project-list-help" class="help-text">기존 프로젝트를 선택하거나 새로 시작</div>
-                </div>
-
-                <div class="quick-templates">
-                    <h3>표준 샘플</h3>
-                    <div class="template-grid" role="group" aria-label="프로젝트 샘플">
-                        <button class="template-card" data-template="government">
-                            <span class="template-icon" aria-hidden="true">🏛️</span>
-                            <span>전자정부</span>
-                        </button>
-                        <button class="template-card" data-template="basic">
-                            <span class="template-icon" aria-hidden="true">🌐</span>
-                            <span>기본 웹사이트</span>
-                        </button>
-                        <button class="template-card" data-template="ecommerce">
-                            <span class="template-icon" aria-hidden="true">🛒</span>
-                            <span>전자상거래</span>
-                        </button>
-                        <button class="template-card" data-template="mobile">
-                            <span class="template-icon" aria-hidden="true">📱</span>
-                            <span>모바일 앱</span>
-                        </button>
-                    </div>
-                </div>
-            </nav>
-
             <section class="main-panel">
                 <div class="project-info-card">
                     <h2>프로젝트 정보</h2>
@@ -116,9 +105,9 @@
                                     <div class="input-item">
                                         <label for="fpType">
                                             FP 유형
-                                            <span class="tooltip" tabindex="0" role="button" aria-describedby="fp-type-tooltip">ⓘ</span>
+                                            <button type="button" class="tooltip" id="fpTypeTooltip" aria-describedby="fp-type-tooltip">ⓘ</button>
                                         </label>
-                                        <div id="fp-type-tooltip" class="tooltip-content" role="tooltip">
+                                        <div id="fp-type-tooltip" class="tooltip-content" role="tooltip" aria-hidden="true">
                                             <div class="tooltip-item">
                                                 <strong>EI (외부입력):</strong> 애플리케이션 경계를 통해 들어오는 데이터나 제어정보를 처리하는 기능
                                             </div>

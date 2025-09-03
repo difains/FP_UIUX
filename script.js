@@ -1,7 +1,5 @@
 class FPCalculator {
     constructor() {
-        this.projects = JSON.parse(localStorage.getItem('fpProjects')) || {};
-        this.currentProject = null;
         this.functions = [];
         
         // FP 가중치 (IFPUG 표준)
@@ -30,14 +28,11 @@ class FPCalculator {
         this.templates = this.initializeTemplates();
         this.initializeEventListeners();
         this.initializeAccessibility();
-        this.loadProjectList();
+        this.initializeTooltip();
     }
 
     initializeEventListeners() {
         console.log('이벤트 리스너 초기화 시작');
-        
-        // 프로젝트 관리 (새로만들기, 삭제 기능 제거)
-        this.bindElement('projectList', 'change', (e) => this.loadProject(e.target.value));
         
         // 기능 입력
         this.bindElement('addFunction', 'click', () => this.addFunction());
@@ -104,14 +99,6 @@ class FPCalculator {
         this.bindElement('functionName', 'input', () => this.validateFunctionName());
         this.bindElement('screenCount', 'input', () => this.validateScreenCount());
         
-        // 프로젝트 정보 변경 감지
-        ['projectName', 'projectType', 'estimationMethod'].forEach(id => {
-            this.bindElement(id, 'change', () => this.saveCurrentProject());
-        });
-        
-        // 자동 저장
-        setInterval(() => this.autoSave(), 30000);
-        
         console.log('이벤트 리스너 초기화 완료');
     }
 
@@ -132,20 +119,96 @@ class FPCalculator {
         console.log('접근성 기능 초기화 완료');
     }
 
+    // 툴팁 초기화
+    initializeTooltip() {
+        const tooltipButton = document.getElementById('fpTypeTooltip');
+        const tooltipContent = document.getElementById('fp-type-tooltip');
+        
+        if (tooltipButton && tooltipContent) {
+            // 클릭 이벤트
+            tooltipButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.toggleTooltip();
+            });
+            
+            // 호버 이벤트
+            tooltipButton.addEventListener('mouseenter', () => {
+                this.showTooltip();
+            });
+            
+            tooltipButton.addEventListener('mouseleave', () => {
+                this.hideTooltip();
+            });
+            
+            // 포커스 이벤트
+            tooltipButton.addEventListener('focus', () => {
+                this.showTooltip();
+            });
+            
+            tooltipButton.addEventListener('blur', () => {
+                this.hideTooltip();
+            });
+            
+            // 키보드 이벤트
+            tooltipButton.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.toggleTooltip();
+                } else if (e.key === 'Escape') {
+                    this.hideTooltip();
+                }
+            });
+            
+            // 외부 클릭으로 툴팁 닫기
+            document.addEventListener('click', (e) => {
+                if (!tooltipButton.contains(e.target) && !tooltipContent.contains(e.target)) {
+                    this.hideTooltip();
+                }
+            });
+            
+            console.log('툴팁 초기화 완료');
+        } else {
+            console.warn('툴팁 요소를 찾을 수 없습니다');
+        }
+    }
+
+    showTooltip() {
+        const tooltipContent = document.getElementById('fp-type-tooltip');
+        if (tooltipContent) {
+            tooltipContent.classList.add('show');
+            tooltipContent.setAttribute('aria-hidden', 'false');
+        }
+    }
+
+    hideTooltip() {
+        const tooltipContent = document.getElementById('fp-type-tooltip');
+        if (tooltipContent) {
+            tooltipContent.classList.remove('show');
+            tooltipContent.setAttribute('aria-hidden', 'true');
+        }
+    }
+
+    toggleTooltip() {
+        const tooltipContent = document.getElementById('fp-type-tooltip');
+        if (tooltipContent) {
+            if (tooltipContent.classList.contains('show')) {
+                this.hideTooltip();
+            } else {
+                this.showTooltip();
+            }
+        }
+    }
+
     // 키보드 네비게이션
     initializeKeyboardNavigation() {
         document.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-                e.preventDefault();
-                this.saveCurrentProject();
-                this.announce('프로젝트가 저장되었습니다.');
-            }
-            
             if (e.key === 'Escape') {
                 const openModal = document.querySelector('.modal[style*="block"]');
                 if (openModal) {
                     openModal.style.display = 'none';
                 }
+                this.hideTooltip();
             }
         });
     }
@@ -197,70 +260,6 @@ class FPCalculator {
                 { name: '사용자 DB', type: 'ILF', complexity: 'average', screens: 0 }
             ]
         };
-    }
-
-    loadProject(projectId) {
-        if (!projectId || !this.projects[projectId]) {
-            this.currentProject = null;
-            this.functions = [];
-            this.clearForm();
-            this.updateDisplay();
-            return;
-        }
-        
-        this.currentProject = projectId;
-        const project = this.projects[projectId];
-        this.functions = [...project.functions];
-        
-        document.getElementById('projectName').value = project.name;
-        document.getElementById('projectType').value = project.type;
-        document.getElementById('estimationMethod').value = project.estimationMethod;
-        
-        this.updateFunctionTable();
-        this.calculateResults();
-        this.announce(`${project.name} 프로젝트가 로드되었습니다.`);
-    }
-
-    loadProjectList() {
-        const select = document.getElementById('projectList');
-        select.innerHTML = '<option value="">새 프로젝트</option>';
-        
-        Object.values(this.projects).forEach(project => {
-            const option = document.createElement('option');
-            option.value = project.id;
-            option.textContent = project.name;
-            select.appendChild(option);
-        });
-        
-        if (this.currentProject) {
-            select.value = this.currentProject;
-        }
-    }
-
-    saveCurrentProject() {
-        // 현재 입력된 정보로 간단한 프로젝트 저장
-        const projectName = document.getElementById('projectName').value.trim();
-        if (!projectName || this.functions.length === 0) return;
-
-        const projectId = this.currentProject || Date.now().toString();
-        const project = {
-            id: projectId,
-            name: projectName,
-            type: document.getElementById('projectType').value,
-            estimationMethod: document.getElementById('estimationMethod').value,
-            functions: [...this.functions],
-            createdAt: this.currentProject ? this.projects[projectId]?.createdAt : new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        };
-        
-        this.projects[projectId] = project;
-        this.currentProject = projectId;
-        this.saveProjects();
-        this.loadProjectList();
-    }
-
-    saveProjects() {
-        localStorage.setItem('fpProjects', JSON.stringify(this.projects));
     }
 
     // 탭 전환
@@ -345,7 +344,6 @@ class FPCalculator {
         this.updateFunctionTable();
         this.calculateResults();
         this.clearInputForm();
-        this.saveCurrentProject();
         
         this.announce(`${name} 기능이 추가되었습니다. 총 ${this.functions.length}개의 기능이 등록되었습니다.`);
         this.showSuccessMessage('기능이 성공적으로 추가되었습니다.');
@@ -403,7 +401,6 @@ class FPCalculator {
         bulkTextarea.value = '';
         this.updateFunctionTable();
         this.calculateResults();
-        this.saveCurrentProject();
         
         this.announce(`${addedCount}개의 기능이 일괄 추가되었습니다.`);
         this.showSuccessMessage(`${addedCount}개의 기능이 추가되었습니다.`);
@@ -445,7 +442,6 @@ class FPCalculator {
         
         this.updateFunctionTable();
         this.calculateResults();
-        this.saveCurrentProject();
         
         this.announce(`${templateType} 샘플이 로드되었습니다.`);
         this.showSuccessMessage('샘플이 적용되었습니다.');
@@ -522,7 +518,6 @@ class FPCalculator {
         
         this.updateFunctionTable();
         this.calculateResults();
-        this.saveCurrentProject();
         
         this.announce(`${this.functions.length}개의 기능이 업로드되었습니다.`);
         this.showSuccessMessage(`${this.functions.length}개의 기능이 업로드되었습니다.`);
@@ -584,7 +579,6 @@ class FPCalculator {
             this.functions = this.functions.filter(f => f.id !== id);
             this.updateFunctionTable();
             this.calculateResults();
-            this.saveCurrentProject();
             this.announce(`${func.name} 기능이 삭제되었습니다.`);
         }
     }
@@ -606,7 +600,6 @@ class FPCalculator {
         
         this.updateFunctionTable();
         this.calculateResults();
-        this.saveCurrentProject();
         this.announce(`${func.name} 기능이 수정되었습니다.`);
     }
 
@@ -618,7 +611,6 @@ class FPCalculator {
             this.functions = [];
             this.updateFunctionTable();
             this.calculateResults();
-            this.saveCurrentProject();
             this.announce('모든 기능이 삭제되었습니다.');
         }
     }
@@ -837,18 +829,6 @@ class FPCalculator {
         document.getElementById('bulkFunctions').value = '';
     }
 
-    clearForm() {
-        document.getElementById('projectName').value = '';
-        document.getElementById('projectType').value = 'web';
-        document.getElementById('estimationMethod').value = 'simple';
-        this.clearInputForm();
-    }
-
-    updateDisplay() {
-        this.updateFunctionTable();
-        this.calculateResults();
-    }
-
     // PDF 내보내기
     exportToPDF() {
         if (this.functions.length === 0) {
@@ -968,13 +948,6 @@ GitHub: https://github.com/difains/FP_UIUX`);
         document.getElementById('loadingOverlay').setAttribute('aria-hidden', 'true');
     }
 
-    // 자동 저장
-    autoSave() {
-        if (this.functions.length > 0) {
-            this.saveCurrentProject();
-        }
-    }
-
     // 공유된 프로젝트 로드
     loadSharedProject() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -1006,10 +979,6 @@ GitHub: https://github.com/difains/FP_UIUX`);
     // 초기화
     init() {
         this.loadSharedProject();
-        if (!this.functions.length && Object.keys(this.projects).length > 0) {
-            const firstProject = Object.keys(this.projects)[0];
-            this.loadProject(firstProject);
-        }
     }
 }
 
