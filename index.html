@@ -4,32 +4,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UI/UX FP 간이 산정 도구</title>
+    <meta name="description" content="전자정부 표준 KRDS 가이드라인을 준수하는 UI/UX 기능점수 간이 산정 도구">
+    <meta name="keywords" content="FP,기능점수,UI/UX,전자정부,KRDS,산정도구">
+    <meta name="author" content="difains">
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- 접근성: 스킵 네비게이션 -->
+    <div class="skip-navigation">
+        <a href="#main-content">본문 바로가기</a>
+        <a href="#sidebar-menu">메뉴 바로가기</a>
+    </div>
+
     <div class="container">
-        <header class="header">
+        <header class="header" role="banner">
             <div class="header-content">
-                <h1>UI/UX 기능점수 간이 산정 도구</h1>
-                <p class="subtitle">내부용 FP 산정 및 UI/UX 인력 산정 시스템</p>
+                <div class="header-title">
+                    <h1>UI/UX 기능점수 간이 산정 도구</h1>
+                    <p class="subtitle">전자정부 표준 프레임워크 기반 FP 산정 시스템 (KRDS 준수)</p>
+                </div>
                 <div class="header-actions">
-                    <input type="file" id="excelUpload" accept=".xlsx,.xls" style="display: none;">
-                    <button id="uploadBtn" class="btn-header">Excel 업로드</button>
-                    <button id="downloadBtn" class="btn-header">Excel 다운로드</button>
+                    <input type="file" id="excelUpload" accept=".xlsx,.xls" style="display: none;" aria-label="Excel 파일 선택">
+                    <button id="uploadBtn" class="btn-header" aria-describedby="upload-help">📤 Excel 업로드</button>
+                    <button id="downloadBtn" class="btn-header" aria-describedby="download-help">📥 Excel 다운로드</button>
+                    <div id="upload-help" class="sr-only">Excel 파일에서 기능 목록 가져오기</div>
+                    <div id="download-help" class="sr-only">현재 프로젝트를 Excel 파일로 저장</div>
                 </div>
             </div>
         </header>
 
-        <main class="main-content">
-            <div class="sidebar">
+        <main class="main-content" id="main-content" role="main">
+            <nav class="sidebar" id="sidebar-menu" role="navigation" aria-label="프로젝트 관리 메뉴">
                 <div class="project-selector">
                     <h3>프로젝트 관리</h3>
-                    <select id="projectList">
+                    <label for="projectList" class="sr-only">프로젝트 선택</label>
+                    <select id="projectList" aria-describedby="project-list-help">
                         <option value="">새 프로젝트</option>
                     </select>
+                    <div id="project-list-help" class="help-text">기존 프로젝트를 선택하거나 새로 만들기</div>
                     <div class="project-actions">
                         <button id="newProject" class="btn-small">새로 만들기</button>
                         <button id="deleteProject" class="btn-small btn-danger">삭제</button>
@@ -37,39 +52,40 @@
                 </div>
 
                 <div class="quick-templates">
-                    <h3>빠른 템플릿</h3>
-                    <div class="template-grid">
+                    <h3>표준 템플릿</h3>
+                    <div class="template-grid" role="group" aria-label="프로젝트 템플릿">
+                        <button class="template-card" data-template="government">
+                            <span class="template-icon" aria-hidden="true">🏛️</span>
+                            <span>전자정부</span>
+                        </button>
                         <button class="template-card" data-template="basic">
-                            <span class="template-icon">🌐</span>
+                            <span class="template-icon" aria-hidden="true">🌐</span>
                             <span>기본 웹사이트</span>
                         </button>
                         <button class="template-card" data-template="ecommerce">
-                            <span class="template-icon">🛒</span>
-                            <span>쇼핑몰</span>
-                        </button>
-                        <button class="template-card" data-template="cms">
-                            <span class="template-icon">📝</span>
-                            <span>CMS/게시판</span>
+                            <span class="template-icon" aria-hidden="true">🛒</span>
+                            <span>전자상거래</span>
                         </button>
                         <button class="template-card" data-template="mobile">
-                            <span class="template-icon">📱</span>
+                            <span class="template-icon" aria-hidden="true">📱</span>
                             <span>모바일 앱</span>
                         </button>
                     </div>
                 </div>
-            </div>
+            </nav>
 
-            <div class="main-panel">
+            <section class="main-panel">
                 <div class="project-info-card">
                     <h2>프로젝트 정보</h2>
                     <div class="info-grid">
                         <div class="info-item">
-                            <label for="projectName">프로젝트명</label>
-                            <input type="text" id="projectName" placeholder="프로젝트명을 입력하세요">
+                            <label for="projectName">프로젝트명 <span class="required" aria-label="필수">*</span></label>
+                            <input type="text" id="projectName" aria-required="true" placeholder="프로젝트명을 입력하세요">
                         </div>
                         <div class="info-item">
                             <label for="projectType">프로젝트 유형</label>
                             <select id="projectType">
+                                <option value="government">전자정부 시스템</option>
                                 <option value="web">웹 애플리케이션</option>
                                 <option value="mobile">모바일 앱</option>
                                 <option value="hybrid">하이브리드</option>
@@ -80,7 +96,7 @@
                             <label for="estimationMethod">산정 방식</label>
                             <select id="estimationMethod">
                                 <option value="simple">간편 추정법 (기능수 × 4.7)</option>
-                                <option value="detailed">상세 산정법 (FP 유형별)</option>
+                                <option value="detailed">상세 산정법 (IFPUG 표준)</option>
                             </select>
                         </div>
                     </div>
@@ -89,51 +105,59 @@
                 <div class="function-input-card">
                     <h2>기능 입력</h2>
                     <div class="input-methods">
-                        <div class="method-tabs">
-                            <button class="tab-btn active" data-tab="manual">수동 입력</button>
-                            <button class="tab-btn" data-tab="bulk">일괄 입력</button>
+                        <div class="method-tabs" role="tablist">
+                            <button class="tab-btn active" data-tab="manual" role="tab" aria-selected="true">수동 입력</button>
+                            <button class="tab-btn" data-tab="bulk" role="tab" aria-selected="false">일괄 입력</button>
                         </div>
                         
-                        <div id="manual-input" class="input-method active">
-                            <div class="input-grid">
-                                <div class="input-item">
-                                    <label for="functionName">기능명</label>
-                                    <input type="text" id="functionName" placeholder="예: 회원 로그인">
+                        <div id="manual-input" class="input-method active" role="tabpanel">
+                            <div class="input-form">
+                                <div class="input-row">
+                                    <div class="input-item">
+                                        <label for="functionName">기능명 <span class="required">*</span></label>
+                                        <input type="text" id="functionName" aria-required="true" placeholder="예: 민원 접수">
+                                    </div>
+                                    <div class="input-item">
+                                        <label for="fpType">FP 유형</label>
+                                        <select id="fpType">
+                                            <option value="EI">외부입력 (EI) - 평균 4.0</option>
+                                            <option value="EO">외부출력 (EO) - 평균 5.2</option>
+                                            <option value="EQ">외부조회 (EQ) - 평균 3.9</option>
+                                            <option value="ILF">내부논리파일 (ILF) - 평균 7.5</option>
+                                            <option value="EIF">외부연계파일 (EIF) - 평균 5.4</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                <div class="input-item">
-                                    <label for="fpType">FP 유형</label>
-                                    <select id="fpType">
-                                        <option value="EI">외부입력 (EI) - 4.0</option>
-                                        <option value="EO">외부출력 (EO) - 5.2</option>
-                                        <option value="EQ">외부조회 (EQ) - 3.9</option>
-                                        <option value="ILF">내부논리파일 (ILF) - 7.5</option>
-                                        <option value="EIF">외부연계파일 (EIF) - 5.4</option>
-                                    </select>
+                                <div class="input-row">
+                                    <div class="input-item">
+                                        <label for="screenCount">화면 수</label>
+                                        <input type="number" id="screenCount" min="0" max="100" value="1">
+                                    </div>
+                                    <div class="input-item">
+                                        <label for="complexity">복잡도</label>
+                                        <select id="complexity">
+                                            <option value="simple">단순 (Simple)</option>
+                                            <option value="average" selected>보통 (Average)</option>
+                                            <option value="complex">복잡 (Complex)</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                <div class="input-item">
-                                    <label for="screenCount">화면 수</label>
-                                    <input type="number" id="screenCount" placeholder="1" min="1" value="1">
-                                </div>
-                                <div class="input-item">
-                                    <label for="complexity">복잡도</label>
-                                    <select id="complexity">
-                                        <option value="simple">단순</option>
-                                        <option value="average" selected>보통</option>
-                                        <option value="complex">복잡</option>
-                                    </select>
-                                </div>
-                                <div class="input-item">
+                                <div class="input-actions">
                                     <button id="addFunction" class="btn-primary">기능 추가</button>
+                                    <button id="clearForm" class="btn-secondary">입력 지우기</button>
                                 </div>
                             </div>
                         </div>
 
-                        <div id="bulk-input" class="input-method">
+                        <div id="bulk-input" class="input-method" role="tabpanel" aria-hidden="true">
                             <div class="bulk-input-container">
                                 <label for="bulkFunctions">일괄 입력 (CSV 형식)</label>
                                 <p class="input-help">형식: 기능명, FP유형, 화면수, 복잡도 (한 줄에 하나씩)</p>
-                                <textarea id="bulkFunctions" placeholder="회원 로그인, EI, 1, average&#10;상품 목록, EQ, 1, simple&#10;주문 처리, EI, 3, complex"></textarea>
-                                <button id="bulkAdd" class="btn-primary">일괄 추가</button>
+                                <textarea id="bulkFunctions" rows="10" placeholder="민원 접수, EI, 2, average&#10;민원 조회, EQ, 1, simple&#10;통계 출력, EO, 1, complex"></textarea>
+                                <div class="bulk-actions">
+                                    <button id="bulkAdd" class="btn-primary">일괄 추가</button>
+                                    <button id="clearBulk" class="btn-secondary">텍스트 지우기</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -141,53 +165,60 @@
 
                 <div class="function-list-card">
                     <div class="card-header">
-                        <h2>기능 목록</h2>
+                        <h2>기능 목록 <span class="function-count" id="functionCount" aria-live="polite">(0개)</span></h2>
                         <div class="list-actions">
-                            <button id="clearAll" class="btn-small btn-danger">전체 삭제</button>
                             <button id="validateFunctions" class="btn-small">검증</button>
+                            <button id="clearAll" class="btn-small btn-danger">전체 삭제</button>
                         </div>
                     </div>
                     <div class="table-container">
-                        <table id="functionTable">
+                        <table id="functionTable" role="table">
                             <thead>
                                 <tr>
-                                    <th>기능명</th>
-                                    <th>FP 유형</th>
-                                    <th>복잡도</th>
-                                    <th>가중치</th>
-                                    <th>화면 수</th>
-                                    <th>FP</th>
-                                    <th>액션</th>
+                                    <th scope="col">기능명</th>
+                                    <th scope="col">FP 유형</th>
+                                    <th scope="col">복잡도</th>
+                                    <th scope="col">가중치</th>
+                                    <th scope="col">화면 수</th>
+                                    <th scope="col">FP</th>
+                                    <th scope="col">액션</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
+                            <tfoot>
+                                <tr class="total-row">
+                                    <td colspan="5"><strong>합계</strong></td>
+                                    <td><strong id="totalFPInTable">0.0</strong></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>
-            </div>
+            </section>
 
-            <div class="results-panel">
+            <aside class="results-panel" role="complementary">
                 <div class="fp-summary-card">
                     <h2>FP 산정 결과</h2>
                     <div class="summary-grid">
                         <div class="summary-item primary">
                             <span class="label">총 기능점수</span>
-                            <span id="totalFP" class="value">0</span>
+                            <span id="totalFP" class="value" aria-live="polite">0</span>
                             <span class="unit">FP</span>
                         </div>
                         <div class="summary-item">
                             <span class="label">개발비용</span>
-                            <span id="totalCost" class="value">0</span>
+                            <span id="totalCost" class="value" aria-live="polite">0</span>
                             <span class="unit">만원</span>
                         </div>
                         <div class="summary-item">
                             <span class="label">총 화면 수</span>
-                            <span id="totalScreens" class="value">0</span>
+                            <span id="totalScreens" class="value" aria-live="polite">0</span>
                             <span class="unit">개</span>
                         </div>
                         <div class="summary-item">
                             <span class="label">예상 기간</span>
-                            <span id="estimatedDuration" class="value">0</span>
+                            <span id="estimatedDuration" class="value" aria-live="polite">0</span>
                             <span class="unit">개월</span>
                         </div>
                     </div>
@@ -198,16 +229,16 @@
                     <div class="roles-grid">
                         <div class="role-item">
                             <div class="role-header">
-                                <span class="role-icon">🎯</span>
+                                <span class="role-icon" aria-hidden="true">🎯</span>
                                 <div class="role-info">
                                     <h3>UI/UX 기획자</h3>
                                     <p>사용자 경험 분석 및 기획</p>
                                 </div>
                             </div>
                             <div class="role-calculation">
-                                <span class="calculation-detail">화면 수 × 0.15</span>
+                                <span class="calculation-detail">화면 수 × 0.15MM</span>
                                 <div class="role-result">
-                                    <span id="uxPlanner" class="value">0</span>
+                                    <span id="uxPlanner" class="value" aria-live="polite">0</span>
                                     <span class="unit">MM</span>
                                 </div>
                             </div>
@@ -215,16 +246,16 @@
 
                         <div class="role-item">
                             <div class="role-header">
-                                <span class="role-icon">🎨</span>
+                                <span class="role-icon" aria-hidden="true">🎨</span>
                                 <div class="role-info">
                                     <h3>UI/UX 디자이너</h3>
                                     <p>화면 디자인 및 프로토타입</p>
                                 </div>
                             </div>
                             <div class="role-calculation">
-                                <span class="calculation-detail">화면 수 × 0.25</span>
+                                <span class="calculation-detail">화면 수 × 0.25MM</span>
                                 <div class="role-result">
-                                    <span id="uiDesigner" class="value">0</span>
+                                    <span id="uiDesigner" class="value" aria-live="polite">0</span>
                                     <span class="unit">MM</span>
                                 </div>
                             </div>
@@ -232,16 +263,16 @@
 
                         <div class="role-item">
                             <div class="role-header">
-                                <span class="role-icon">💻</span>
+                                <span class="role-icon" aria-hidden="true">💻</span>
                                 <div class="role-info">
                                     <h3>웹 퍼블리셔</h3>
                                     <p>HTML/CSS 구현</p>
                                 </div>
                             </div>
                             <div class="role-calculation">
-                                <span class="calculation-detail">화면 수 × 0.20</span>
+                                <span class="calculation-detail">화면 수 × 0.20MM</span>
                                 <div class="role-result">
-                                    <span id="publisher" class="value">0</span>
+                                    <span id="publisher" class="value" aria-live="polite">0</span>
                                     <span class="unit">MM</span>
                                 </div>
                             </div>
@@ -251,7 +282,7 @@
 
                 <div class="validation-card">
                     <h2>검증 결과</h2>
-                    <div id="validationResults" class="validation-content">
+                    <div id="validationResults" class="validation-content" aria-live="polite">
                         <p class="no-issues">검증을 실행하세요.</p>
                     </div>
                 </div>
@@ -264,12 +295,10 @@
                         <button id="shareProject" class="btn-secondary">🔗 공유 링크</button>
                     </div>
                 </div>
-            </div>
-
-<!-- 기존 main 태그 닫기 직후에 추가 -->
+            </aside>
         </main>
-        
-        <footer class="footer">
+
+        <footer class="footer" role="contentinfo">
             <div class="footer-content">
                 <div class="footer-section">
                     <h3>계산식 근거</h3>
@@ -292,7 +321,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="footer-section">
                     <h3>참고 문헌</h3>
                     <ul class="reference-list">
@@ -303,7 +332,7 @@
                         <li>국가정보화 표준 가이드라인 - SW개발 단가 기준</li>
                     </ul>
                 </div>
-                
+
                 <div class="footer-section">
                     <h3>산정 기준</h3>
                     <div class="calculation-details">
@@ -326,11 +355,11 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="footer-bottom">
                 <div class="footer-info">
-                    <p>&copy; 2025 UI/UX FP 간이 산정 도구 | 내부용 시스템</p>
-                    <p>최종 업데이트: 2025년 6월 27일</p>
+                    <p>© 2025 UI/UX FP 간이 산정 도구 | <a href="https://difains.github.io/FP_UIUX/" target="_blank">difains</a></p>
+                    <p>최종 업데이트: 2025년 9월 3일</p>
                 </div>
                 <div class="footer-links">
                     <button id="showMethodology" class="footer-link">산정 방법론</button>
@@ -341,12 +370,14 @@
         </footer>
     </div>
 
-    <!-- 모달 창들 -->
-    <div id="methodologyModal" class="modal">
+    <!-- 모달 창 -->
+    <div id="methodologyModal" class="modal" role="dialog" aria-hidden="true">
         <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>FP 산정 방법론</h2>
-            <div class="methodology-content">
+            <div class="modal-header">
+                <h2>FP 산정 방법론</h2>
+                <button class="close" aria-label="모달 닫기">&times;</button>
+            </div>
+            <div class="modal-body">
                 <h3>IFPUG 기능점수 측정법</h3>
                 <p>국제 기능점수 사용자 그룹(IFPUG)에서 제정한 표준 측정 방법으로, 소프트웨어의 기능적 크기를 사용자 관점에서 측정합니다.</p>
                 
@@ -359,16 +390,18 @@
         </div>
     </div>
 
-        </main>
-    </div>
-
-    <div id="loadingOverlay" class="loading-overlay">
+    <!-- 로딩 오버레이 -->
+    <div id="loadingOverlay" class="loading-overlay" aria-hidden="true">
         <div class="loading-content">
             <div class="loading-spinner"></div>
             <p>처리 중...</p>
         </div>
     </div>
 
+    <!-- 스크린 리더용 공지 영역 -->
+    <div aria-live="polite" aria-atomic="true" class="sr-only" id="announcements"></div>
+
+    <!-- 외부 라이브러리 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="script.js"></script>

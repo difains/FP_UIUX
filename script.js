@@ -29,6 +29,7 @@ class FPCalculator {
         
         this.templates = this.initializeTemplates();
         this.initializeEventListeners();
+        this.initializeAccessibility();
         this.loadProjectList();
     }
 
@@ -36,147 +37,171 @@ class FPCalculator {
         console.log('이벤트 리스너 초기화 시작');
         
         // 프로젝트 관리
-        document.getElementById('newProject').addEventListener('click', () => this.createNewProject());
-        document.getElementById('deleteProject').addEventListener('click', () => this.deleteProject());
-        document.getElementById('projectList').addEventListener('change', (e) => this.loadProject(e.target.value));
+        this.bindElement('newProject', 'click', () => this.createNewProject());
+        this.bindElement('deleteProject', 'click', () => this.deleteProject());
+        this.bindElement('projectList', 'change', (e) => this.loadProject(e.target.value));
         
-        // 기능 입력 - 수정된 부분
-        const addBtn = document.getElementById('addFunction');
-        if (addBtn) {
-            addBtn.addEventListener('click', () => {
-                console.log('추가 버튼 클릭됨');
-                this.addFunction();
-            });
-        }
+        // 기능 입력
+        this.bindElement('addFunction', 'click', () => this.addFunction());
+        this.bindElement('bulkAdd', 'click', () => this.bulkAddFunctions());
+        this.bindElement('clearForm', 'click', () => this.clearInputForm());
+        this.bindElement('clearBulk', 'click', () => this.clearBulkInput());
         
-        const bulkAddBtn = document.getElementById('bulkAdd');
-        if (bulkAddBtn) {
-            bulkAddBtn.addEventListener('click', () => {
-                console.log('일괄 추가 버튼 클릭됨');
-                this.bulkAddFunctions();
-            });
-        }
-        
-        // 엔터키 이벤트
-        const functionNameInput = document.getElementById('functionName');
-        if (functionNameInput) {
-            functionNameInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    console.log('엔터키 입력됨');
-                    this.addFunction();
-                }
-            });
-        }
-        
-        // 탭 전환 - 수정된 부분
+        // 탭 전환
         document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                console.log('탭 클릭됨:', e.target.dataset.tab);
-                this.switchTab(e.target.dataset.tab);
+            btn.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
+            btn.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.switchTab(e.target.dataset.tab);
+                }
             });
         });
         
-        // 나머지 이벤트 리스너들...
-        this.initializeOtherEventListeners();
-        
-        console.log('이벤트 리스너 초기화 완료');
-    }
-
-    initializeOtherEventListeners() {
         // 템플릿 로드
         document.querySelectorAll('.template-card').forEach(card => {
             card.addEventListener('click', (e) => {
                 const template = e.currentTarget.dataset.template;
                 this.loadTemplate(template);
             });
+            card.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    const template = e.currentTarget.dataset.template;
+                    this.loadTemplate(template);
+                }
+            });
         });
         
         // Excel 업로드/다운로드
-        document.getElementById('uploadBtn').addEventListener('click', () => {
-            document.getElementById('excelUpload').click();
-        });
-        document.getElementById('excelUpload').addEventListener('change', (e) => this.handleExcelUpload(e));
-        document.getElementById('downloadBtn').addEventListener('click', () => this.downloadExcel());
+        this.bindElement('uploadBtn', 'click', () => document.getElementById('excelUpload').click());
+        this.bindElement('excelUpload', 'change', (e) => this.handleExcelUpload(e));
+        this.bindElement('downloadBtn', 'click', () => this.downloadExcel());
         
         // 검증 및 내보내기
-        document.getElementById('validateFunctions').addEventListener('click', () => this.validateFunctions());
-        document.getElementById('clearAll').addEventListener('click', () => this.clearAllFunctions());
-        document.getElementById('exportPDF').addEventListener('click', () => this.exportToPDF());
-        document.getElementById('exportExcel').addEventListener('click', () => this.exportToExcel());
-        document.getElementById('shareProject').addEventListener('click', () => this.shareProject());
+        this.bindElement('validateFunctions', 'click', () => this.validateFunctions());
+        this.bindElement('clearAll', 'click', () => this.clearAllFunctions());
+        this.bindElement('exportPDF', 'click', () => this.exportToPDF());
+        this.bindElement('exportExcel', 'click', () => this.exportToExcel());
+        this.bindElement('shareProject', 'click', () => this.shareProject());
+        
+        // Footer 모달
+        this.bindElement('showMethodology', 'click', () => this.showModal('methodologyModal'));
+        this.bindElement('showReferences', 'click', () => this.showReferencesAlert());
+        this.bindElement('showDisclaimer', 'click', () => this.showDisclaimerAlert());
+        
+        // 모달 닫기
+        document.querySelectorAll('.close').forEach(closeBtn => {
+            closeBtn.addEventListener('click', (e) => {
+                e.target.closest('.modal').style.display = 'none';
+            });
+        });
+        
+        // 엔터키 이벤트
+        this.bindElement('functionName', 'keypress', (e) => {
+            if (e.key === 'Enter') this.addFunction();
+        });
+        
+        // 실시간 입력 검증
+        this.bindElement('functionName', 'input', () => this.validateFunctionName());
+        this.bindElement('screenCount', 'input', () => this.validateScreenCount());
         
         // 프로젝트 정보 변경 감지
         ['projectName', 'projectType', 'estimationMethod'].forEach(id => {
-            const element = document.getElementById(id);
-            if (element) {
-                element.addEventListener('change', () => this.saveCurrentProject());
-            }
+            this.bindElement(id, 'change', () => this.saveCurrentProject());
         });
         
         // 자동 저장
         setInterval(() => this.autoSave(), 30000);
+        
+        console.log('이벤트 리스너 초기화 완료');
+    }
+
+    // 안전한 이벤트 바인딩
+    bindElement(id, event, handler) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener(event, handler);
+        } else {
+            console.warn(`Element with id '${id}' not found`);
+        }
+    }
+
+    // 접근성 초기화
+    initializeAccessibility() {
+        this.announcer = document.getElementById('announcements');
+        this.initializeKeyboardNavigation();
+        console.log('접근성 기능 초기화 완료');
+    }
+
+    // 키보드 네비게이션
+    initializeKeyboardNavigation() {
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                this.saveCurrentProject();
+                this.announce('프로젝트가 저장되었습니다.');
+            }
+            
+            if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+                e.preventDefault();
+                this.createNewProject();
+            }
+            
+            if (e.key === 'Escape') {
+                const openModal = document.querySelector('.modal[style*="block"]');
+                if (openModal) {
+                    openModal.style.display = 'none';
+                }
+            }
+        });
+    }
+
+    // 스크린 리더 공지
+    announce(message) {
+        if (this.announcer) {
+            this.announcer.textContent = message;
+            setTimeout(() => {
+                this.announcer.textContent = '';
+            }, 1000);
+        }
     }
 
     // 템플릿 초기화
     initializeTemplates() {
         return {
+            government: [
+                { name: '민원 접수', type: 'EI', complexity: 'average', screens: 3 },
+                { name: '민원 조회', type: 'EQ', complexity: 'average', screens: 2 },
+                { name: '민원 처리 현황', type: 'EO', complexity: 'complex', screens: 2 },
+                { name: '공지사항 관리', type: 'EI', complexity: 'simple', screens: 3 },
+                { name: '사용자 인증', type: 'EI', complexity: 'complex', screens: 2 },
+                { name: '민원 DB', type: 'ILF', complexity: 'complex', screens: 0 },
+                { name: '사용자 DB', type: 'ILF', complexity: 'average', screens: 0 }
+            ],
             basic: [
                 { name: '메인 페이지', type: 'EQ', complexity: 'average', screens: 1 },
                 { name: '회원 가입', type: 'EI', complexity: 'average', screens: 2 },
                 { name: '로그인', type: 'EI', complexity: 'simple', screens: 1 },
-                { name: '회원 정보 조회', type: 'EQ', complexity: 'simple', screens: 1 },
                 { name: '회원 정보 수정', type: 'EI', complexity: 'average', screens: 1 },
-                { name: '공지사항 목록', type: 'EQ', complexity: 'simple', screens: 1 },
-                { name: '공지사항 상세', type: 'EQ', complexity: 'simple', screens: 1 },
-                { name: '문의하기', type: 'EI', complexity: 'simple', screens: 1 },
-                { name: '회원 DB', type: 'ILF', complexity: 'average', screens: 0 },
-                { name: '공지사항 DB', type: 'ILF', complexity: 'simple', screens: 0 }
+                { name: '공지사항', type: 'EQ', complexity: 'simple', screens: 2 },
+                { name: '회원 DB', type: 'ILF', complexity: 'average', screens: 0 }
             ],
             ecommerce: [
                 { name: '상품 목록', type: 'EQ', complexity: 'average', screens: 1 },
                 { name: '상품 상세', type: 'EQ', complexity: 'average', screens: 1 },
-                { name: '상품 검색', type: 'EQ', complexity: 'complex', screens: 1 },
                 { name: '장바구니', type: 'EI', complexity: 'average', screens: 2 },
-                { name: '주문하기', type: 'EI', complexity: 'complex', screens: 3 },
-                { name: '결제', type: 'EI', complexity: 'complex', screens: 2 },
-                { name: '주문 내역', type: 'EQ', complexity: 'average', screens: 2 },
-                { name: '상품 관리', type: 'EI', complexity: 'complex', screens: 3 },
-                { name: '재고 관리', type: 'EI', complexity: 'average', screens: 2 },
-                { name: '매출 통계', type: 'EO', complexity: 'complex', screens: 2 },
+                { name: '주문/결제', type: 'EI', complexity: 'complex', screens: 3 },
                 { name: '상품 DB', type: 'ILF', complexity: 'complex', screens: 0 },
-                { name: '주문 DB', type: 'ILF', complexity: 'complex', screens: 0 },
-                { name: '회원 DB', type: 'ILF', complexity: 'average', screens: 0 },
-                { name: '결제 API', type: 'EIF', complexity: 'average', screens: 0 }
-            ],
-            cms: [
-                { name: '게시글 목록', type: 'EQ', complexity: 'average', screens: 1 },
-                { name: '게시글 작성', type: 'EI', complexity: 'average', screens: 1 },
-                { name: '게시글 수정', type: 'EI', complexity: 'average', screens: 1 },
-                { name: '게시글 삭제', type: 'EI', complexity: 'simple', screens: 0 },
-                { name: '게시글 검색', type: 'EQ', complexity: 'average', screens: 1 },
-                { name: '댓글 관리', type: 'EI', complexity: 'average', screens: 1 },
-                { name: '파일 업로드', type: 'EI', complexity: 'average', screens: 1 },
-                { name: '카테고리 관리', type: 'EI', complexity: 'simple', screens: 2 },
-                { name: '사용자 권한 관리', type: 'EI', complexity: 'complex', screens: 2 },
-                { name: '통계 대시보드', type: 'EO', complexity: 'average', screens: 1 },
-                { name: '게시판 DB', type: 'ILF', complexity: 'average', screens: 0 },
-                { name: '사용자 DB', type: 'ILF', complexity: 'average', screens: 0 },
-                { name: '파일 DB', type: 'ILF', complexity: 'simple', screens: 0 }
+                { name: '주문 DB', type: 'ILF', complexity: 'complex', screens: 0 }
             ],
             mobile: [
-                { name: '스플래시 화면', type: 'EQ', complexity: 'simple', screens: 1 },
+                { name: '스플래시', type: 'EQ', complexity: 'simple', screens: 1 },
                 { name: '온보딩', type: 'EQ', complexity: 'average', screens: 3 },
-                { name: '로그인/회원가입', type: 'EI', complexity: 'average', screens: 2 },
-                { name: '메인 대시보드', type: 'EQ', complexity: 'complex', screens: 1 },
-                { name: '프로필 관리', type: 'EI', complexity: 'average', screens: 2 },
-                { name: '설정', type: 'EI', complexity: 'average', screens: 3 },
-                { name: '알림', type: 'EQ', complexity: 'average', screens: 1 },
-                { name: '검색', type: 'EQ', complexity: 'average', screens: 2 },
-                { name: '즐겨찾기', type: 'EI', complexity: 'simple', screens: 1 },
-                { name: '푸시 알림', type: 'EO', complexity: 'average', screens: 0 },
-                { name: '사용자 DB', type: 'ILF', complexity: 'average', screens: 0 },
-                { name: '컨텐츠 DB', type: 'ILF', complexity: 'complex', screens: 0 },
-                { name: '푸시 서비스 API', type: 'EIF', complexity: 'simple', screens: 0 }
+                { name: '로그인', type: 'EI', complexity: 'average', screens: 2 },
+                { name: '메인 화면', type: 'EQ', complexity: 'complex', screens: 1 },
+                { name: '설정', type: 'EI', complexity: 'average', screens: 2 },
+                { name: '사용자 DB', type: 'ILF', complexity: 'average', screens: 0 }
             ]
         };
     }
@@ -201,6 +226,7 @@ class FPCalculator {
         this.saveProjects();
         this.loadProjectList();
         this.loadProject(projectId);
+        this.announce('새 프로젝트가 생성되었습니다.');
     }
 
     deleteProject() {
@@ -214,6 +240,7 @@ class FPCalculator {
             this.loadProjectList();
             this.clearForm();
             this.updateDisplay();
+            this.announce('프로젝트가 삭제되었습니다.');
         }
     }
 
@@ -236,6 +263,7 @@ class FPCalculator {
         
         this.updateFunctionTable();
         this.calculateResults();
+        this.announce(`${project.name} 프로젝트가 로드되었습니다.`);
     }
 
     loadProjectList() {
@@ -272,47 +300,43 @@ class FPCalculator {
         localStorage.setItem('fpProjects', JSON.stringify(this.projects));
     }
 
-    // 탭 전환 - 수정된 함수
+    // 탭 전환
     switchTab(tabName) {
         console.log('탭 전환:', tabName);
         
-        // 모든 탭 버튼에서 active 클래스 제거
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.classList.remove('active');
+            btn.setAttribute('aria-selected', 'false');
         });
         
-        // 모든 입력 방법에서 active 클래스 제거
         document.querySelectorAll('.input-method').forEach(method => {
             method.classList.remove('active');
+            method.setAttribute('aria-hidden', 'true');
         });
         
-        // 클릭된 탭 버튼에 active 클래스 추가
         const activeTabBtn = document.querySelector(`[data-tab="${tabName}"]`);
-        if (activeTabBtn) {
-            activeTabBtn.classList.add('active');
-        }
-        
-        // 해당 입력 방법에 active 클래스 추가
         const activeMethod = document.getElementById(`${tabName}-input`);
-        if (activeMethod) {
-            activeMethod.classList.add('active');
-        }
         
-        console.log('탭 전환 완료:', tabName);
+        if (activeTabBtn && activeMethod) {
+            activeTabBtn.classList.add('active');
+            activeTabBtn.setAttribute('aria-selected', 'true');
+            activeMethod.classList.add('active');
+            activeMethod.setAttribute('aria-hidden', 'false');
+            
+            this.announce(`${activeTabBtn.textContent} 탭으로 전환되었습니다.`);
+        }
     }
 
-    // 기능 추가 - 수정된 함수
+    // 기능 추가
     addFunction() {
-        console.log('addFunction 호출됨');
+        console.log('기능 추가 시작');
         
         const nameInput = document.getElementById('functionName');
         const typeSelect = document.getElementById('fpType');
         const screenInput = document.getElementById('screenCount');
         const complexitySelect = document.getElementById('complexity');
         
-        if (!nameInput || !typeSelect || !screenInput || !complexitySelect) {
-            console.error('필수 입력 요소를 찾을 수 없습니다');
-            alert('입력 요소를 찾을 수 없습니다. 페이지를 새로고침해주세요.');
+        if (!this.validateRequiredElements([nameInput, typeSelect, screenInput, complexitySelect])) {
             return;
         }
         
@@ -321,11 +345,20 @@ class FPCalculator {
         const screenCount = parseInt(screenInput.value) || 1;
         const complexity = complexitySelect.value;
         
-        console.log('입력값:', { name, type, screenCount, complexity });
-        
+        // 입력 검증
         if (!name) {
-            alert('기능명을 입력해주세요.');
-            nameInput.focus();
+            this.showValidationError(nameInput, '기능명을 입력해주세요.');
+            return;
+        }
+        
+        if (screenCount < 0 || screenCount > 100) {
+            this.showValidationError(screenInput, '화면 수는 0-100 사이의 값을 입력해주세요.');
+            return;
+        }
+        
+        // 중복 기능명 체크
+        if (this.functions.some(func => func.name.toLowerCase() === name.toLowerCase())) {
+            this.showValidationError(nameInput, '이미 존재하는 기능명입니다.');
             return;
         }
         
@@ -341,23 +374,25 @@ class FPCalculator {
             complexity: complexity,
             weight: weight,
             screenCount: screenCount,
-            fp: weight * (type.includes('LF') ? 1 : screenCount)
+            fp: weight * (type.includes('LF') ? 1 : screenCount),
+            createdAt: new Date().toISOString()
         };
-        
-        console.log('생성된 기능 객체:', functionObj);
         
         this.functions.push(functionObj);
         this.updateFunctionTable();
         this.calculateResults();
-        this.clearInputs();
+        this.clearInputForm();
         this.saveCurrentProject();
         
-        console.log('기능 추가 완료. 총 기능 수:', this.functions.length);
+        this.announce(`${name} 기능이 추가되었습니다. 총 ${this.functions.length}개의 기능이 등록되었습니다.`);
+        this.showSuccessMessage('기능이 성공적으로 추가되었습니다.');
+        
+        console.log('기능 추가 완료:', functionObj);
     }
 
-    // 일괄 추가 - 수정된 함수
+    // 일괄 추가
     bulkAddFunctions() {
-        console.log('bulkAddFunctions 호출됨');
+        console.log('일괄 추가 시작');
         
         const bulkTextarea = document.getElementById('bulkFunctions');
         if (!bulkTextarea) {
@@ -375,14 +410,12 @@ class FPCalculator {
         const estimationMethod = document.getElementById('estimationMethod').value;
         let addedCount = 0;
         
-        console.log('처리할 라인 수:', lines.length);
-        
         lines.forEach((line, index) => {
             const parts = line.split(',').map(part => part.trim());
             if (parts.length >= 4) {
                 const [name, type, screenCount, complexity] = parts;
                 
-                if (this.fpWeights[type]) {
+                if (this.fpWeights[type] && name) {
                     const weight = estimationMethod === 'simple' 
                         ? this.simpleWeights[type] 
                         : this.fpWeights[type][complexity] || this.fpWeights[type]['average'];
@@ -394,17 +427,13 @@ class FPCalculator {
                         complexity: complexity || 'average',
                         weight: weight,
                         screenCount: parseInt(screenCount) || 1,
-                        fp: weight * (type.includes('LF') ? 1 : parseInt(screenCount) || 1)
+                        fp: weight * (type.includes('LF') ? 1 : parseInt(screenCount) || 1),
+                        createdAt: new Date().toISOString()
                     };
                     
                     this.functions.push(functionObj);
                     addedCount++;
-                    console.log(`라인 ${index + 1} 처리 완료:`, functionObj.name);
-                } else {
-                    console.warn(`라인 ${index + 1}: 잘못된 FP 유형 - ${type}`);
                 }
-            } else {
-                console.warn(`라인 ${index + 1}: 형식이 올바르지 않음 - ${line}`);
             }
         });
         
@@ -413,7 +442,9 @@ class FPCalculator {
         this.calculateResults();
         this.saveCurrentProject();
         
-        alert(`${addedCount}개의 기능이 추가되었습니다.`);
+        this.announce(`${addedCount}개의 기능이 일괄 추가되었습니다.`);
+        this.showSuccessMessage(`${addedCount}개의 기능이 추가되었습니다.`);
+        
         console.log('일괄 추가 완료. 추가된 기능 수:', addedCount);
     }
 
@@ -442,7 +473,8 @@ class FPCalculator {
                 complexity: template.complexity,
                 weight: weight,
                 screenCount: template.screens,
-                fp: weight * (template.type.includes('LF') ? 1 : template.screens)
+                fp: weight * (template.type.includes('LF') ? 1 : template.screens),
+                createdAt: new Date().toISOString()
             };
             
             this.functions.push(functionObj);
@@ -451,6 +483,9 @@ class FPCalculator {
         this.updateFunctionTable();
         this.calculateResults();
         this.saveCurrentProject();
+        
+        this.announce(`${templateType} 템플릿이 로드되었습니다.`);
+        this.showSuccessMessage('템플릿이 적용되었습니다.');
     }
 
     // Excel 업로드 처리
@@ -487,15 +522,6 @@ class FPCalculator {
             return;
         }
         
-        // 헤더 확인 (첫 번째 행)
-        const headers = data[0];
-        const expectedHeaders = ['기능명', 'FP유형', '복잡도', '화면수'];
-        
-        if (!expectedHeaders.every(header => headers.includes(header))) {
-            alert('Excel 파일 형식이 올바르지 않습니다.\n헤더: 기능명, FP유형, 복잡도, 화면수');
-            return;
-        }
-        
         if (this.functions.length > 0) {
             if (!confirm('기존 기능 목록이 삭제됩니다. 계속하시겠습니까?')) {
                 return;
@@ -505,13 +531,12 @@ class FPCalculator {
         this.functions = [];
         const estimationMethod = document.getElementById('estimationMethod').value;
         
-        // 데이터 파싱 (두 번째 행부터)
         for (let i = 1; i < data.length; i++) {
             const row = data[i];
             if (row.length >= 4 && row[0]) {
                 const [name, type, complexity, screenCount] = row;
                 
-                if (this.fpWeights[type]) {
+                if (this.fpWeights[type] && name) {
                     const weight = estimationMethod === 'simple' 
                         ? this.simpleWeights[type] 
                         : this.fpWeights[type][complexity] || this.fpWeights[type]['average'];
@@ -523,7 +548,8 @@ class FPCalculator {
                         complexity: complexity || 'average',
                         weight: weight,
                         screenCount: parseInt(screenCount) || 1,
-                        fp: weight * (type.includes('LF') ? 1 : parseInt(screenCount) || 1)
+                        fp: weight * (type.includes('LF') ? 1 : parseInt(screenCount) || 1),
+                        createdAt: new Date().toISOString()
                     };
                     
                     this.functions.push(functionObj);
@@ -535,7 +561,8 @@ class FPCalculator {
         this.calculateResults();
         this.saveCurrentProject();
         
-        alert(`${this.functions.length}개의 기능이 업로드되었습니다.`);
+        this.announce(`${this.functions.length}개의 기능이 업로드되었습니다.`);
+        this.showSuccessMessage(`${this.functions.length}개의 기능이 업로드되었습니다.`);
     }
 
     // Excel 다운로드
@@ -561,7 +588,6 @@ class FPCalculator {
             ]);
         });
         
-        // 요약 정보 추가
         const totalFP = this.functions.reduce((sum, func) => sum + func.fp, 0);
         const totalCost = totalFP * this.fpUnitPrice;
         const totalScreens = this.functions.reduce((sum, func) => sum + func.screenCount, 0);
@@ -585,48 +611,19 @@ class FPCalculator {
         const fileName = `${projectName}_FP산정결과_${new Date().toISOString().split('T')[0]}.xlsx`;
         
         XLSX.writeFile(workbook, fileName);
+        this.announce('Excel 파일이 다운로드되었습니다.');
     }
 
     // 기능 삭제
     removeFunction(id) {
-        this.functions = this.functions.filter(func => func.id !== id);
-        this.updateFunctionTable();
-        this.calculateResults();
-        this.saveCurrentProject();
-    }
-
-    // 전체 삭제
-    clearAllFunctions() {
-        if (this.functions.length === 0) return;
-        
-        if (confirm('모든 기능을 삭제하시겠습니까?')) {
-            this.functions = [];
+        const func = this.functions.find(f => f.id === id);
+        if (func && confirm(`'${func.name}' 기능을 삭제하시겠습니까?`)) {
+            this.functions = this.functions.filter(f => f.id !== id);
             this.updateFunctionTable();
             this.calculateResults();
             this.saveCurrentProject();
+            this.announce(`${func.name} 기능이 삭제되었습니다.`);
         }
-    }
-
-    // 기능 테이블 업데이트
-    updateFunctionTable() {
-        const tbody = document.querySelector('#functionTable tbody');
-        tbody.innerHTML = '';
-        
-        this.functions.forEach(func => {
-            const row = tbody.insertRow();
-            row.innerHTML = `
-                <td>${func.name}</td>
-                <td><span class="fp-type-badge fp-${func.type.toLowerCase()}">${func.type}</span></td>
-                <td>${func.complexity}</td>
-                <td>${func.weight}</td>
-                <td>${func.screenCount}</td>
-                <td><strong>${func.fp.toFixed(1)}</strong></td>
-                <td>
-                    <button onclick="fpCalculator.editFunction(${func.id})" class="btn-small">수정</button>
-                    <button onclick="fpCalculator.removeFunction(${func.id})" class="btn-small btn-danger">삭제</button>
-                </td>
-            `;
-        });
     }
 
     // 기능 수정
@@ -640,13 +637,62 @@ class FPCalculator {
         const newScreenCount = prompt('화면 수:', func.screenCount);
         if (newScreenCount === null) return;
         
-        func.name = newName;
+        func.name = newName.trim();
         func.screenCount = parseInt(newScreenCount) || 1;
         func.fp = func.weight * (func.type.includes('LF') ? 1 : func.screenCount);
         
         this.updateFunctionTable();
         this.calculateResults();
         this.saveCurrentProject();
+        this.announce(`${func.name} 기능이 수정되었습니다.`);
+    }
+
+    // 전체 삭제
+    clearAllFunctions() {
+        if (this.functions.length === 0) return;
+        
+        if (confirm('모든 기능을 삭제하시겠습니까?')) {
+            this.functions = [];
+            this.updateFunctionTable();
+            this.calculateResults();
+            this.saveCurrentProject();
+            this.announce('모든 기능이 삭제되었습니다.');
+        }
+    }
+
+    // 테이블 업데이트
+    updateFunctionTable() {
+        const tbody = document.querySelector('#functionTable tbody');
+        const functionCount = document.getElementById('functionCount');
+        
+        tbody.innerHTML = '';
+        
+        this.functions.forEach(func => {
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td>${func.name}</td>
+                <td><span class="fp-type-badge fp-${func.type.toLowerCase()}">${func.type}</span></td>
+                <td>${func.complexity}</td>
+                <td>${func.weight.toFixed(1)}</td>
+                <td>${func.screenCount}</td>
+                <td><strong>${func.fp.toFixed(1)}</strong></td>
+                <td>
+                    <button onclick="fpCalculator.editFunction(${func.id})" 
+                            class="btn-small" aria-label="${func.name} 수정">수정</button>
+                    <button onclick="fpCalculator.removeFunction(${func.id})" 
+                            class="btn-small btn-danger" aria-label="${func.name} 삭제">삭제</button>
+                </td>
+            `;
+        });
+        
+        // 합계 행 업데이트
+        const totalFP = this.functions.reduce((sum, func) => sum + func.fp, 0);
+        document.getElementById('totalFPInTable').textContent = totalFP.toFixed(1);
+        
+        // 기능 개수 업데이트
+        if (functionCount) {
+            functionCount.textContent = `(${this.functions.length}개)`;
+        }
     }
 
     // 결과 계산
@@ -654,22 +700,29 @@ class FPCalculator {
         const totalFP = this.functions.reduce((sum, func) => sum + func.fp, 0);
         const totalCost = totalFP * this.fpUnitPrice;
         const totalScreens = this.functions.reduce((sum, func) => sum + func.screenCount, 0);
-        const estimatedDuration = Math.ceil(totalFP / 100); // 100FP당 1개월 가정
+        const estimatedDuration = Math.ceil(totalFP / 100);
         
         // FP 결과 업데이트
-        document.getElementById('totalFP').textContent = totalFP.toFixed(1);
-        document.getElementById('totalCost').textContent = totalCost.toFixed(0);
-        document.getElementById('totalScreens').textContent = totalScreens;
-        document.getElementById('estimatedDuration').textContent = estimatedDuration;
+        this.updateElementText('totalFP', totalFP.toFixed(1));
+        this.updateElementText('totalCost', totalCost.toFixed(0));
+        this.updateElementText('totalScreens', totalScreens.toString());
+        this.updateElementText('estimatedDuration', estimatedDuration.toString());
         
         // UI/UX 인력 산정
         const uxPlannerMM = totalScreens * this.uiuxRates.planner;
         const uiDesignerMM = totalScreens * this.uiuxRates.designer;
         const publisherMM = totalScreens * this.uiuxRates.publisher;
         
-        document.getElementById('uxPlanner').textContent = uxPlannerMM.toFixed(2);
-        document.getElementById('uiDesigner').textContent = uiDesignerMM.toFixed(2);
-        document.getElementById('publisher').textContent = publisherMM.toFixed(2);
+        this.updateElementText('uxPlanner', uxPlannerMM.toFixed(2));
+        this.updateElementText('uiDesigner', uiDesignerMM.toFixed(2));
+        this.updateElementText('publisher', publisherMM.toFixed(2));
+    }
+
+    updateElementText(id, text) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = text;
+        }
     }
 
     // 검증 기능
@@ -677,7 +730,6 @@ class FPCalculator {
         const issues = [];
         const results = document.getElementById('validationResults');
         
-        // 기본 검증
         if (this.functions.length === 0) {
             issues.push('기능이 하나도 입력되지 않았습니다.');
         }
@@ -689,7 +741,7 @@ class FPCalculator {
             issues.push(`중복된 기능명이 있습니다: ${[...new Set(duplicates)].join(', ')}`);
         }
         
-        // FP 유형별 비율 검증 (IFPUG 권장사항)
+        // FP 유형별 비율 검증
         const typeCount = {};
         this.functions.forEach(func => {
             typeCount[func.type] = (typeCount[func.type] || 0) + 1;
@@ -704,21 +756,134 @@ class FPCalculator {
             issues.push('데이터 기능(ILF 또는 EIF)이 없습니다.');
         }
         
-        // 화면 수 검증
-        const zeroScreenFunctions = this.functions.filter(f => f.screenCount === 0 && !f.type.includes('LF'));
-        if (zeroScreenFunctions.length > 0) {
-            issues.push(`화면 수가 0인 트랜잭션 기능이 있습니다: ${zeroScreenFunctions.map(f => f.name).join(', ')}`);
-        }
-        
         // 결과 표시
         results.innerHTML = '';
         if (issues.length === 0) {
             results.innerHTML = '<div class="validation-success">✅ 검증 완료: 문제가 발견되지 않았습니다.</div>';
+            this.announce('검증이 완료되었습니다. 문제가 발견되지 않았습니다.');
         } else {
             issues.forEach(issue => {
                 results.innerHTML += `<div class="validation-issue">⚠️ ${issue}</div>`;
             });
+            this.announce(`검증 결과 ${issues.length}개의 문제가 발견되었습니다.`);
         }
+    }
+
+    // 입력 검증
+    validateRequiredElements(elements) {
+        for (let element of elements) {
+            if (!element) {
+                console.error('필수 입력 요소를 찾을 수 없습니다.');
+                this.showErrorMessage('시스템 오류가 발생했습니다. 페이지를 새로고침해주세요.');
+                return false;
+            }
+        }
+        return true;
+    }
+
+    showValidationError(element, message) {
+        element.focus();
+        element.setAttribute('aria-invalid', 'true');
+        
+        const existingError = element.parentNode.querySelector('.error-message');
+        if (existingError) {
+            existingError.remove();
+        }
+        
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.textContent = message;
+        errorDiv.setAttribute('role', 'alert');
+        element.parentNode.appendChild(errorDiv);
+        
+        this.announce(`오류: ${message}`);
+        
+        setTimeout(() => {
+            if (errorDiv.parentNode) {
+                errorDiv.remove();
+            }
+            element.removeAttribute('aria-invalid');
+        }, 3000);
+    }
+
+    showSuccessMessage(message) {
+        const successDiv = document.createElement('div');
+        successDiv.className = 'success-message';
+        successDiv.textContent = message;
+        successDiv.setAttribute('role', 'status');
+        
+        document.body.appendChild(successDiv);
+        
+        setTimeout(() => {
+            if (successDiv.parentNode) {
+                successDiv.remove();
+            }
+        }, 3000);
+    }
+
+    showErrorMessage(message) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message global-error';
+        errorDiv.textContent = message;
+        errorDiv.setAttribute('role', 'alert');
+        
+        document.body.appendChild(errorDiv);
+        
+        setTimeout(() => {
+            if (errorDiv.parentNode) {
+                errorDiv.remove();
+            }
+        }, 5000);
+    }
+
+    // 실시간 검증
+    validateFunctionName() {
+        const nameInput = document.getElementById('functionName');
+        const name = nameInput.value.trim();
+        
+        if (name && this.functions.some(func => func.name.toLowerCase() === name.toLowerCase())) {
+            this.showValidationError(nameInput, '이미 존재하는 기능명입니다.');
+        } else {
+            nameInput.removeAttribute('aria-invalid');
+            const errorMsg = nameInput.parentNode.querySelector('.error-message');
+            if (errorMsg) errorMsg.remove();
+        }
+    }
+
+    validateScreenCount() {
+        const screenInput = document.getElementById('screenCount');
+        const count = parseInt(screenInput.value);
+        
+        if (isNaN(count) || count < 0 || count > 100) {
+            this.showValidationError(screenInput, '화면 수는 0-100 사이의 값을 입력해주세요.');
+        } else {
+            screenInput.removeAttribute('aria-invalid');
+            const errorMsg = screenInput.parentNode.querySelector('.error-message');
+            if (errorMsg) errorMsg.remove();
+        }
+    }
+
+    // 입력 폼 관리
+    clearInputForm() {
+        document.getElementById('functionName').value = '';
+        document.getElementById('screenCount').value = '1';
+        document.getElementById('complexity').value = 'average';
+    }
+
+    clearBulkInput() {
+        document.getElementById('bulkFunctions').value = '';
+    }
+
+    clearForm() {
+        document.getElementById('projectName').value = '';
+        document.getElementById('projectType').value = 'web';
+        document.getElementById('estimationMethod').value = 'simple';
+        this.clearInputForm();
+    }
+
+    updateDisplay() {
+        this.updateFunctionTable();
+        this.calculateResults();
     }
 
     // PDF 내보내기
@@ -731,15 +896,12 @@ class FPCalculator {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         
-        // 한글 폰트 설정 (기본 폰트 사용)
         doc.setFont('helvetica');
         
-        // 제목
-        doc.setFontSize(20);
         const projectName = document.getElementById('projectName').value || '프로젝트';
+        doc.setFontSize(20);
         doc.text(`${projectName} FP 산정 결과`, 20, 30);
         
-        // 프로젝트 정보
         doc.setFontSize(12);
         const projectType = document.getElementById('projectType').value;
         const estimationMethod = document.getElementById('estimationMethod').value;
@@ -747,7 +909,6 @@ class FPCalculator {
         doc.text(`산정 방식: ${estimationMethod}`, 20, 60);
         doc.text(`생성일: ${new Date().toLocaleDateString('ko-KR')}`, 20, 70);
         
-        // 요약 정보
         const totalFP = this.functions.reduce((sum, func) => sum + func.fp, 0);
         const totalCost = totalFP * this.fpUnitPrice;
         const totalScreens = this.functions.reduce((sum, func) => sum + func.screenCount, 0);
@@ -759,7 +920,6 @@ class FPCalculator {
         doc.text(`개발비용: ${totalCost.toFixed(0)} 만원`, 20, 115);
         doc.text(`총 화면수: ${totalScreens} 개`, 20, 125);
         
-        // UI/UX 인력 산정
         doc.setFontSize(14);
         doc.text('=== UI/UX 인력 산정 ===', 20, 145);
         doc.setFontSize(12);
@@ -767,38 +927,16 @@ class FPCalculator {
         doc.text(`UI/UX 디자이너: ${(totalScreens * this.uiuxRates.designer).toFixed(2)} MM`, 20, 170);
         doc.text(`웹 퍼블리셔: ${(totalScreens * this.uiuxRates.publisher).toFixed(2)} MM`, 20, 180);
         
-        // 기능 목록 (새 페이지)
-        doc.addPage();
-        doc.setFontSize(14);
-        doc.text('=== 기능 목록 ===', 20, 30);
-        
-        let yPos = 50;
-        doc.setFontSize(10);
-        
-        this.functions.forEach((func, index) => {
-            if (yPos > 270) {
-                doc.addPage();
-                yPos = 30;
-            }
-            
-            doc.text(`${index + 1}. ${func.name}`, 20, yPos);
-            doc.text(`${func.type} (${func.complexity})`, 120, yPos);
-            doc.text(`${func.screenCount}화면`, 160, yPos);
-            doc.text(`${func.fp.toFixed(1)}FP`, 180, yPos);
-            yPos += 10;
-        });
-        
-        // 파일 저장
         const fileName = `${projectName}_FP산정결과_${new Date().toISOString().split('T')[0]}.pdf`;
         doc.save(fileName);
+        this.announce('PDF 파일이 다운로드되었습니다.');
     }
 
-    // Excel 내보내기 (상세 버전)
     exportToExcel() {
-        this.downloadExcel(); // 기존 함수 재사용
+        this.downloadExcel();
     }
 
-    // 공유 링크 생성
+    // 공유 기능
     shareProject() {
         if (!this.currentProject) {
             alert('저장된 프로젝트가 없습니다.');
@@ -817,10 +955,62 @@ class FPCalculator {
         const shareUrl = `${window.location.origin}${window.location.pathname}?share=${encodedData}`;
         
         navigator.clipboard.writeText(shareUrl).then(() => {
-            alert('공유 링크가 클립보드에 복사되었습니다!');
+            this.announce('공유 링크가 클립보드에 복사되었습니다.');
+            this.showSuccessMessage('공유 링크가 클립보드에 복사되었습니다!');
         }).catch(() => {
             prompt('공유 링크:', shareUrl);
         });
+    }
+
+    // 모달 관리
+    showModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.style.display = 'block';
+            modal.setAttribute('aria-hidden', 'false');
+        }
+    }
+
+    showReferencesAlert() {
+        alert(`상세 근거 자료:
+
+1. IFPUG CPM 4.3.1 - 국제 표준 FP 측정법
+2. ISO/IEC 20926:2009 - 소프트웨어 측정 국제 표준
+3. KOSA SW사업 대가산정 가이드 (2024년판)
+4. NIPA SW개발비 산정 가이드라인
+5. 국내 SI 업체 평균 투입 공수 분석 데이터
+
+※ 모든 계산식은 공인된 표준과 실무 데이터를 기반으로 합니다.`);
+    }
+
+    showDisclaimerAlert() {
+        alert(`면책 사항:
+
+본 도구는 내부용 간이 산정 목적으로 제작되었습니다.
+- 정확한 산정을 위해서는 전문가 검토가 필요합니다.
+- 프로젝트 특성에 따라 결과가 달라질 수 있습니다.
+- 최종 의사결정 시 추가 검증을 권장합니다.
+
+개발자: difains
+GitHub: https://difains.github.io/FP_UIUX/`);
+    }
+
+    // 로딩 관리
+    showLoading() {
+        document.getElementById('loadingOverlay').style.display = 'flex';
+        document.getElementById('loadingOverlay').setAttribute('aria-hidden', 'false');
+    }
+
+    hideLoading() {
+        document.getElementById('loadingOverlay').style.display = 'none';
+        document.getElementById('loadingOverlay').setAttribute('aria-hidden', 'true');
+    }
+
+    // 자동 저장
+    autoSave() {
+        if (this.currentProject) {
+            this.saveCurrentProject();
+        }
     }
 
     // 공유된 프로젝트 로드
@@ -832,7 +1022,6 @@ class FPCalculator {
             try {
                 const projectData = JSON.parse(atob(shareData));
                 
-                // 새 프로젝트로 생성
                 const projectId = Date.now().toString();
                 const project = {
                     id: projectId,
@@ -849,51 +1038,14 @@ class FPCalculator {
                 this.loadProjectList();
                 this.loadProject(projectId);
                 
-                // URL에서 공유 파라미터 제거
                 window.history.replaceState({}, document.title, window.location.pathname);
                 
-                alert('공유된 프로젝트가 로드되었습니다!');
+                this.announce('공유된 프로젝트가 로드되었습니다.');
+                this.showSuccessMessage('공유된 프로젝트가 로드되었습니다!');
             } catch (error) {
                 console.error('공유 프로젝트 로드 오류:', error);
                 alert('공유 링크가 올바르지 않습니다.');
             }
-        }
-    }
-
-    // 입력 필드 초기화
-    clearInputs() {
-        document.getElementById('functionName').value = '';
-        document.getElementById('screenCount').value = '1';
-        document.getElementById('complexity').value = 'average';
-    }
-
-    // 폼 전체 초기화
-    clearForm() {
-        document.getElementById('projectName').value = '';
-        document.getElementById('projectType').value = 'web';
-        document.getElementById('estimationMethod').value = 'simple';
-        this.clearInputs();
-    }
-
-    // 화면 업데이트
-    updateDisplay() {
-        this.updateFunctionTable();
-        this.calculateResults();
-    }
-
-    // 로딩 표시
-    showLoading() {
-        document.getElementById('loadingOverlay').style.display = 'flex';
-    }
-
-    hideLoading() {
-        document.getElementById('loadingOverlay').style.display = 'none';
-    }
-
-    // 자동 저장
-    autoSave() {
-        if (this.currentProject) {
-            this.saveCurrentProject();
         }
     }
 
@@ -917,81 +1069,11 @@ document.addEventListener('DOMContentLoaded', function() {
     fpCalculator.init();
     console.log('FP Calculator 초기화 완료');
     
-    // Footer 모달 기능
-    const modals = {
-        methodology: document.getElementById('methodologyModal')
-    };
-    
-    const modalTriggers = {
-        methodology: document.getElementById('showMethodology'),
-        references: document.getElementById('showReferences'),
-        disclaimer: document.getElementById('showDisclaimer')
-    };
-    
-    // 방법론 모달
-    if (modalTriggers.methodology) {
-        modalTriggers.methodology.addEventListener('click', () => {
-            modals.methodology.style.display = 'block';
-        });
-    }
-    
-    // 상세 근거 버튼
-    if (modalTriggers.references) {
-        modalTriggers.references.addEventListener('click', () => {
-            alert(`상세 근거 자료:
-            
-1. IFPUG CPM 4.3.1 - 국제 표준 FP 측정법
-2. ISO/IEC 20926:2009 - 소프트웨어 측정 국제 표준
-3. KOSA SW사업 대가산정 가이드 (2024년판)
-4. NIPA SW개발비 산정 가이드라인
-5. 국내 SI 업체 평균 투입 공수 분석 데이터
-
-※ 모든 계산식은 공인된 표준과 실무 데이터를 기반으로 합니다.`);
-        });
-    }
-    
-    // 면책 사항 버튼
-    if (modalTriggers.disclaimer) {
-        modalTriggers.disclaimer.addEventListener('click', () => {
-            alert(`면책 사항:
-
-본 도구는 내부용 간이 산정 목적으로 제작되었습니다.
-- 정확한 산정을 위해서는 전문가 검토가 필요합니다.
-- 프로젝트 특성에 따라 결과가 달라질 수 있습니다.
-- 최종 의사결정 시 추가 검증을 권장합니다.`);
-        });
-    }
-    
-    // 모달 닫기 기능
-    document.querySelectorAll('.close').forEach(closeBtn => {
-        closeBtn.addEventListener('click', (e) => {
-            e.target.closest('.modal').style.display = 'none';
-        });
-    });
-    
     // 모달 외부 클릭 시 닫기
     window.addEventListener('click', (e) => {
-        Object.values(modals).forEach(modal => {
-            if (e.target === modal) {
-                modal.style.display = 'none';
-            }
-        });
-    });
-});
-    
-    // 키보드 단축키
-    document.addEventListener('keydown', function(e) {
-        if (e.ctrlKey || e.metaKey) {
-            switch(e.key) {
-                case 's':
-                    e.preventDefault();
-                    fpCalculator.saveCurrentProject();
-                    break;
-                case 'n':
-                    e.preventDefault();
-                    fpCalculator.createNewProject();
-                    break;
-            }
+        if (e.target.classList.contains('modal')) {
+            e.target.style.display = 'none';
+            e.target.setAttribute('aria-hidden', 'true');
         }
     });
-
+});
