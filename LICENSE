@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2025 difains
+Copyright (c) 2025 Sophrosyne AI Lab
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -45,10 +45,10 @@ SOFTWARE.
 1. **IFPUG CPM 4.3.1** - International Function Point Users Group
 2. **ISO/IEC 20926:2009** - Software and systems engineering
 3. **WCAG 2.1** - Web Content Accessibility Guidelines
-4. **KRDS** - 전자정부 표준프레임워크 디자인 가이드라인
+4. **KOSA SW사업 대가산정 가이드 (2024)** - 한국소프트웨어산업협회
 
 ### 면책 조항
 
 이 도구는 교육 및 참고 목적으로 제작되었습니다. 실제 프로젝트 산정 시에는 전문가의 검토를 권장합니다.
 
-연락처: https://difains.github.io/FP_UIUX/
+연락처: https://github.com/difains/FP_UIUX/issues

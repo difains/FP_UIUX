@@ -4,7 +4,7 @@
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-1.0.0-orange.svg)]()
 
-전자정부 표준 KRDS 가이드라인을 준수하는 UI/UX 기능점수 간이 산정 도구입니다.
+KOSA SW사업 대가산정 가이드 (2024) 준수 UI/UX 기능점수 간이 산정 도구입니다.
 
 ## 🎯 프로젝트 소개
 
@@ -13,7 +13,7 @@ UI/UX 전문 FP(Function Point) 산정 시스템으로, 소프트웨어 개발 �
 ### 주요 특징
 
 - **IFPUG 표준 준수**: 국제 기능점수 표준 (IFPUG CPM 4.3.1) 기반 산정
-- **KRDS 가이드라인 적용**: 전자정부 표준 프레임워크 준수
+- **KOSA 가이드라인 적용**: SW사업 대가산정 가이드 (2024) 준수
 - **UI/UX 특화**: 화면 수 기반 UI/UX 인력 산정 알고리즘
 - **접근성 지원**: WCAG 2.1 AA 수준 접근성 구현
 - **반응형 디자인**: 웹/태블릿/모바일 모든 환경 지원
@@ -34,8 +34,7 @@ UI/UX 전문 FP(Function Point) 산정 시스템으로, 소프트웨어 개발 �
 
 ### 📁 데이터 관리
 - **Excel 연동**: 업로드/다운로드 지원
-- **프로젝트 관리**: 다중 프로젝트 저장 및 관리
-- **템플릿 제공**: 전자정부/웹/모바일/전자상거래 템플릿
+- **표준 샘플**: 전자정부/웹/모바일/전자상거래 샘플
 - **공유 기능**: URL 기반 프로젝트 공유
 
 ### 📋 결과 내보내기
@@ -52,10 +51,10 @@ https://difains.github.io/FP_UIUX/
 
 ### 2. 프로젝트 정보 입력
 - 프로젝트명, 유형, 산정 방식 선택
-- 템플릿 활용 또는 직접 입력
+- 표준 샘플 활용 또는 직접 입력
 
 ### 3. 기능 목록 입력
-- **수동 입력**: 기능별 개별 입력
+- **수동 입력**: 기능별 개별 입력 (FP 유형 툴팁 참고)
 - **일괄 입력**: CSV 형식 일괄 입력
 - **Excel 업로드**: 기존 데이터 업로드
 
@@ -64,13 +63,30 @@ https://difains.github.io/FP_UIUX/
 - UI/UX 인력 산정 결과 검토
 - PDF/Excel 형태로 결과 다운로드
 
+## 📖 FP 유형 설명
+
+### EI (외부입력)
+애플리케이션 경계를 통해 들어오는 데이터나 제어정보를 처리하는 기능
+
+### EO (외부출력)
+애플리케이션에서 사용자에게 전달되는 데이터나 제어정보를 생성하는 기능
+
+### EQ (외부조회)
+입력과 출력의 조합으로 데이터를 검색하고 표시하는 기능
+
+### ILF (내부논리파일)
+애플리케이션 내부에서 유지관리되는 사용자 식별 가능한 데이터 그룹
+
+### EIF (외부연계파일)
+다른 애플리케이션에서 관리되지만 현재 애플리케이션에서 참조하는 데이터 그룹
+
 ## 🛠 기술 스택
 
 - **Frontend**: HTML5, CSS3, JavaScript (ES6+)
 - **Libraries**: 
   - SheetJS (Excel 처리)
   - jsPDF (PDF 생성)
-- **Design**: KRDS 가이드라인 기반 디자인 시스템
+- **Design**: KOSA 가이드라인 기반 디자인 시스템
 - **Accessibility**: WCAG 2.1 AA 준수
 - **Storage**: localStorage (클라이언트 사이드)
 
@@ -94,7 +110,7 @@ https://difains.github.io/FP_UIUX/
 ### 참고 문헌
 - 한국소프트웨어산업협회 SW사업 대가산정 가이드 (2024)
 - 정보통신산업진흥원 SW개발비 산정 가이드라인
-- 디지털정부서비스 UI·UX 가이드라인 (행정안전부, 2024)
+- IFPUG Counting Practices Manual Release 4.3.1
 
 ## 🤝 기여하기
 
@@ -110,7 +126,7 @@ https://difains.github.io/FP_UIUX/
 
 ## 👨‍💻 개발자
 
-**difains**
+**Sophrosyne AI Lab**
 - GitHub: [https://github.com/difains](https://github.com/difains)
 - Website: [https://difains.github.io/FP_UIUX/](https://difains.github.io/FP_UIUX/)
 
@@ -125,11 +141,12 @@ https://difains.github.io/FP_UIUX/
 
 ### v1.0.0 (2025-09-03)
 - 초기 버전 출시
-- KRDS 가이드라인 준수 UI/UX 구현
+- KOSA 가이드라인 준수 UI/UX 구현
 - IFPUG 표준 FP 산정 기능
 - Excel 업로드/다운로드 기능
 - 반응형 웹 디자인 적용
 - 접근성 기능 구현
+- FP 유형 설명 툴팁 추가
 
 ---
 

@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UI/UX FP 간이 산정 도구</title>
-    <meta name="description" content="전자정부 표준 KRDS 가이드라인을 준수하는 UI/UX 기능점수 간이 산정 도구">
-    <meta name="keywords" content="FP,기능점수,UI/UX,전자정부,KRDS,산정도구">
-    <meta name="author" content="difains">
+    <meta name="description" content="KOSA SW사업 대가산정 가이드 (2024) 준수 UI/UX 기능점수 간이 산정 도구">
+    <meta name="keywords" content="FP,기능점수,UI/UX,KOSA,산정도구">
+    <meta name="author" content="Sophrosyne AI Lab">
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,7 +24,7 @@
             <div class="header-content">
                 <div class="header-title">
                     <h1>UI/UX 기능점수 간이 산정 도구</h1>
-                    <p class="subtitle">전자정부 표준 프레임워크 기반 FP 산정 시스템 (KRDS 준수)</p>
+                    <p class="subtitle">KOSA SW사업 대가산정 가이드 (2024) 준수</p>
                 </div>
                 <div class="header-actions">
                     <input type="file" id="excelUpload" accept=".xlsx,.xls" style="display: none;" aria-label="Excel 파일 선택">
@@ -44,16 +44,12 @@
                     <select id="projectList" aria-describedby="project-list-help">
                         <option value="">새 프로젝트</option>
                     </select>
-                    <div id="project-list-help" class="help-text">기존 프로젝트를 선택하거나 새로 만들기</div>
-                    <div class="project-actions">
-                        <button id="newProject" class="btn-small">새로 만들기</button>
-                        <button id="deleteProject" class="btn-small btn-danger">삭제</button>
-                    </div>
+                    <div id="project-list-help" class="help-text">기존 프로젝트를 선택하거나 새로 시작</div>
                 </div>
 
                 <div class="quick-templates">
-                    <h3>표준 템플릿</h3>
-                    <div class="template-grid" role="group" aria-label="프로젝트 템플릿">
+                    <h3>표준 샘플</h3>
+                    <div class="template-grid" role="group" aria-label="프로젝트 샘플">
                         <button class="template-card" data-template="government">
                             <span class="template-icon" aria-hidden="true">🏛️</span>
                             <span>전자정부</span>
@@ -118,7 +114,27 @@
                                         <input type="text" id="functionName" aria-required="true" placeholder="예: 민원 접수">
                                     </div>
                                     <div class="input-item">
-                                        <label for="fpType">FP 유형</label>
+                                        <label for="fpType">
+                                            FP 유형
+                                            <span class="tooltip" tabindex="0" role="button" aria-describedby="fp-type-tooltip">ⓘ</span>
+                                        </label>
+                                        <div id="fp-type-tooltip" class="tooltip-content" role="tooltip">
+                                            <div class="tooltip-item">
+                                                <strong>EI (외부입력):</strong> 애플리케이션 경계를 통해 들어오는 데이터나 제어정보를 처리하는 기능
+                                            </div>
+                                            <div class="tooltip-item">
+                                                <strong>EO (외부출력):</strong> 애플리케이션에서 사용자에게 전달되는 데이터나 제어정보를 생성하는 기능
+                                            </div>
+                                            <div class="tooltip-item">
+                                                <strong>EQ (외부조회):</strong> 입력과 출력의 조합으로 데이터를 검색하고 표시하는 기능
+                                            </div>
+                                            <div class="tooltip-item">
+                                                <strong>ILF (내부논리파일):</strong> 애플리케이션 내부에서 유지관리되는 사용자 식별 가능한 데이터 그룹
+                                            </div>
+                                            <div class="tooltip-item">
+                                                <strong>EIF (외부연계파일):</strong> 다른 애플리케이션에서 관리되지만 현재 애플리케이션에서 참조하는 데이터 그룹
+                                            </div>
+                                        </div>
                                         <select id="fpType">
                                             <option value="EI">외부입력 (EI) - 평균 4.0</option>
                                             <option value="EO">외부출력 (EO) - 평균 5.2</option>
@@ -358,8 +374,8 @@
 
             <div class="footer-bottom">
                 <div class="footer-info">
-                    <p>© 2025 UI/UX FP 간이 산정 도구 | <a href="https://difains.github.io/FP_UIUX/" target="_blank">difains</a></p>
-                    <p>최종 업데이트: 2025년 9월 3일</p>
+                    <p>© 2025 UI/UX FP 간이 산정 도구 | Sophrosyne AI Lab</p>
+                    <p>문의: <a href="https://github.com/difains/FP_UIUX/issues" target="_blank">https://github.com/difains/FP_UIUX/issues</a></p>
                 </div>
                 <div class="footer-links">
                     <button id="showMethodology" class="footer-link">산정 방법론</button>

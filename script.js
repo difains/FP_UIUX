@@ -36,9 +36,7 @@ class FPCalculator {
     initializeEventListeners() {
         console.log('이벤트 리스너 초기화 시작');
         
-        // 프로젝트 관리
-        this.bindElement('newProject', 'click', () => this.createNewProject());
-        this.bindElement('deleteProject', 'click', () => this.deleteProject());
+        // 프로젝트 관리 (새로만들기, 삭제 기능 제거)
         this.bindElement('projectList', 'change', (e) => this.loadProject(e.target.value));
         
         // 기능 입력
@@ -58,7 +56,7 @@ class FPCalculator {
             });
         });
         
-        // 템플릿 로드
+        // 샘플 로드
         document.querySelectorAll('.template-card').forEach(card => {
             card.addEventListener('click', (e) => {
                 const template = e.currentTarget.dataset.template;
@@ -143,11 +141,6 @@ class FPCalculator {
                 this.announce('프로젝트가 저장되었습니다.');
             }
             
-            if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
-                e.preventDefault();
-                this.createNewProject();
-            }
-            
             if (e.key === 'Escape') {
                 const openModal = document.querySelector('.modal[style*="block"]');
                 if (openModal) {
@@ -206,44 +199,6 @@ class FPCalculator {
         };
     }
 
-    // 프로젝트 관리
-    createNewProject() {
-        const name = prompt('새 프로젝트 이름을 입력하세요:');
-        if (!name) return;
-        
-        const projectId = Date.now().toString();
-        const project = {
-            id: projectId,
-            name: name,
-            type: 'web',
-            estimationMethod: 'simple',
-            functions: [],
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        };
-        
-        this.projects[projectId] = project;
-        this.saveProjects();
-        this.loadProjectList();
-        this.loadProject(projectId);
-        this.announce('새 프로젝트가 생성되었습니다.');
-    }
-
-    deleteProject() {
-        if (!this.currentProject) return;
-        
-        if (confirm('현재 프로젝트를 삭제하시겠습니까?')) {
-            delete this.projects[this.currentProject];
-            this.saveProjects();
-            this.currentProject = null;
-            this.functions = [];
-            this.loadProjectList();
-            this.clearForm();
-            this.updateDisplay();
-            this.announce('프로젝트가 삭제되었습니다.');
-        }
-    }
-
     loadProject(projectId) {
         if (!projectId || !this.projects[projectId]) {
             this.currentProject = null;
@@ -283,15 +238,23 @@ class FPCalculator {
     }
 
     saveCurrentProject() {
-        if (!this.currentProject) return;
+        // 현재 입력된 정보로 간단한 프로젝트 저장
+        const projectName = document.getElementById('projectName').value.trim();
+        if (!projectName || this.functions.length === 0) return;
+
+        const projectId = this.currentProject || Date.now().toString();
+        const project = {
+            id: projectId,
+            name: projectName,
+            type: document.getElementById('projectType').value,
+            estimationMethod: document.getElementById('estimationMethod').value,
+            functions: [...this.functions],
+            createdAt: this.currentProject ? this.projects[projectId]?.createdAt : new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
         
-        const project = this.projects[this.currentProject];
-        project.name = document.getElementById('projectName').value;
-        project.type = document.getElementById('projectType').value;
-        project.estimationMethod = document.getElementById('estimationMethod').value;
-        project.functions = [...this.functions];
-        project.updatedAt = new Date().toISOString();
-        
+        this.projects[projectId] = project;
+        this.currentProject = projectId;
         this.saveProjects();
         this.loadProjectList();
     }
@@ -448,7 +411,7 @@ class FPCalculator {
         console.log('일괄 추가 완료. 추가된 기능 수:', addedCount);
     }
 
-    // 템플릿 로드
+    // 샘플 로드
     loadTemplate(templateType) {
         if (!this.templates[templateType]) return;
         
@@ -484,8 +447,8 @@ class FPCalculator {
         this.calculateResults();
         this.saveCurrentProject();
         
-        this.announce(`${templateType} 템플릿이 로드되었습니다.`);
-        this.showSuccessMessage('템플릿이 적용되었습니다.');
+        this.announce(`${templateType} 샘플이 로드되었습니다.`);
+        this.showSuccessMessage('샘플이 적용되었습니다.');
     }
 
     // Excel 업로드 처리
@@ -938,17 +901,16 @@ class FPCalculator {
 
     // 공유 기능
     shareProject() {
-        if (!this.currentProject) {
-            alert('저장된 프로젝트가 없습니다.');
+        if (this.functions.length === 0) {
+            alert('공유할 기능 목록이 없습니다.');
             return;
         }
         
-        const project = this.projects[this.currentProject];
         const shareData = {
-            name: project.name,
-            type: project.type,
-            estimationMethod: project.estimationMethod,
-            functions: project.functions
+            name: document.getElementById('projectName').value || '프로젝트',
+            type: document.getElementById('projectType').value,
+            estimationMethod: document.getElementById('estimationMethod').value,
+            functions: this.functions
         };
         
         const encodedData = btoa(JSON.stringify(shareData));
@@ -986,13 +948,13 @@ class FPCalculator {
     showDisclaimerAlert() {
         alert(`면책 사항:
 
-본 도구는 내부용 간이 산정 목적으로 제작되었습니다.
+본 도구는 간이 산정 목적으로 제작되었습니다.
 - 정확한 산정을 위해서는 전문가 검토가 필요합니다.
 - 프로젝트 특성에 따라 결과가 달라질 수 있습니다.
 - 최종 의사결정 시 추가 검증을 권장합니다.
 
-개발자: difains
-GitHub: https://difains.github.io/FP_UIUX/`);
+개발: Sophrosyne AI Lab
+GitHub: https://github.com/difains/FP_UIUX`);
     }
 
     // 로딩 관리
@@ -1008,7 +970,7 @@ GitHub: https://difains.github.io/FP_UIUX/`);
 
     // 자동 저장
     autoSave() {
-        if (this.currentProject) {
+        if (this.functions.length > 0) {
             this.saveCurrentProject();
         }
     }
@@ -1022,21 +984,13 @@ GitHub: https://difains.github.io/FP_UIUX/`);
             try {
                 const projectData = JSON.parse(atob(shareData));
                 
-                const projectId = Date.now().toString();
-                const project = {
-                    id: projectId,
-                    name: `${projectData.name} (공유됨)`,
-                    type: projectData.type,
-                    estimationMethod: projectData.estimationMethod,
-                    functions: projectData.functions,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString()
-                };
+                document.getElementById('projectName').value = `${projectData.name} (공유됨)`;
+                document.getElementById('projectType').value = projectData.type;
+                document.getElementById('estimationMethod').value = projectData.estimationMethod;
+                this.functions = [...projectData.functions];
                 
-                this.projects[projectId] = project;
-                this.saveProjects();
-                this.loadProjectList();
-                this.loadProject(projectId);
+                this.updateFunctionTable();
+                this.calculateResults();
                 
                 window.history.replaceState({}, document.title, window.location.pathname);
                 
@@ -1052,7 +1006,7 @@ GitHub: https://difains.github.io/FP_UIUX/`);
     // 초기화
     init() {
         this.loadSharedProject();
-        if (!this.currentProject && Object.keys(this.projects).length > 0) {
+        if (!this.functions.length && Object.keys(this.projects).length > 0) {
             const firstProject = Object.keys(this.projects)[0];
             this.loadProject(firstProject);
         }
